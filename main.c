@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
                        f_hash_i->method == f_hash_j->method) {
                 const u32 dist = hamming_distance(f_hash_i->h.img.ahash,
                                                   f_hash_j->h.img.ahash);
-                if (dist <= DISTANCE_EPSILON) {
+                if (dist <= opts.distance) {
                     printf(
                         "%s\n%s\nsimilar ahashes: %llx %llx distance: %u\n\n",
                         f_hash_i->file_name, f_hash_j->file_name,

@@ -12,6 +12,7 @@ typedef struct {
     const char* dir;
     bool windowless;
     usize size;
+    u8 distance;
 } options;
 
 static void usage() {
@@ -24,6 +25,7 @@ Options:\n\
     -h --help                   This help message\n\
     -s --size <size>            Maximum size of files to inspect\n\
     -W --windowless             Windowless\n\
+    -d --distance               Hash distance for duplicate detection\n\
 ");
 }
 
@@ -31,6 +33,7 @@ static void options_parse(char* argv[], options* opts) {
     // Defaults
     opts->verbose = false;
     opts->windowless = false;
+    opts->distance = 4;
     opts->size = 100 * 1000 * 1000;  // 100 Mb
 
     // Parse
@@ -39,6 +42,9 @@ static void options_parse(char* argv[], options* opts) {
         {.longname = "verbose", .argtype = OPTPARSE_NONE, .shortname = 'v'},
         {.longname = "size", .argtype = OPTPARSE_REQUIRED, .shortname = 's'},
         {.longname = "windowless", .argtype = OPTPARSE_NONE, .shortname = 'W'},
+        {.longname = "distance",
+         .argtype = OPTPARSE_REQUIRED,
+         .shortname = 'd'},
         {0}};
 
     i32 help = false;
@@ -59,6 +65,9 @@ static void options_parse(char* argv[], options* opts) {
                 break;
             case 'W':
                 opts->windowless = true;
+                break;
+            case 'd':
+                opts->distance = (u8)strtoul(options.optarg, NULL, 10);
                 break;
             case '?':
             default:

@@ -1,6 +1,5 @@
 #pragma once
 
-#define DISTANCE_EPSILON (4)
 #define MAX_FILES (1000 * 1000)
 #define MAX_FILE_NAME_LEN (1024)
 #define MAX_CHANNELS (64)
