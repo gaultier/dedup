@@ -1,0 +1,8 @@
+-I/usr/local/include/ 
+-isystem/usr/local/include/
+-Wall
+-Wextra
+-Wpedantic 
+-std=c99
+-Wsign-conversion
+-Wdouble-promotion

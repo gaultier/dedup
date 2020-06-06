@@ -1,4 +1,5 @@
 *.o
 *.dSYM
-opengl_debug
-opengl_release
+dedup_debug
+dedup_release
+test

@@ -1,0 +1,14 @@
+FROM alpine as builder
+RUN apk update && apk add clang make build-base clang-dev sdl2-dev sdl2_image-dev sdl2_ttf-dev
+
+WORKDIR /dedup
+COPY . .
+ 
+ # -flto does not work
+RUN make CC=clang dedup_release -j4 LDFLAGS=""
+
+FROM alpine
+RUN apk update && apk add sdl2 sdl2_image sdl2_ttf
+
+COPY --from=builder /dedup/dedup_release /usr/local/bin/dedup
+COPY --from=builder /dedup/font.ttf /usr/local/share/
