@@ -38,6 +38,7 @@ static void file_hash_compute(void* arg) {
     if (!f) {
         LOG_ERR("Could not open file %s: %s\n", f_hash->file_name,
                 strerror(errno));
+        return;
     }
 
     usize file_content_len;
