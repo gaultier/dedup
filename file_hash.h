@@ -36,7 +36,7 @@ static void file_hash_compute(void* arg) {
 
     FILE* f = fopen(f_hash->file_name, "rb");
     if (!f) {
-        LOG_ERR("Could not open file %s: %s\n", f_hash->file_name,
+        LOG_ERR("Could not open file `%s`, skipping: %s\n", f_hash->file_name,
                 strerror(errno));
         return;
     }
@@ -46,11 +46,15 @@ static void file_hash_compute(void* arg) {
                   ==, 0);
 
     u8* file_content = pg_malloc(file_content_len);
-    if (fread(file_content, 1, file_content_len, f) != file_content_len)
-        DIE(errno,
+    if (fread(file_content, 1, file_content_len, f) != file_content_len) {
+        LOG_ERR(
             "Could not read the entirety of the contents for the file "
-            "%s: %s\n",
+            "`%s`, skipping: %s\n",
             f_hash->file_name, strerror(errno));
+
+        fclose(f);
+        return;
+    }
 
     fclose(f);
 
