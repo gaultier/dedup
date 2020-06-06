@@ -4,6 +4,7 @@
 
 #include "utils.h"
 
+#define METHOD_NONE 0
 #define METHOD_NON_CRYPT_HASH 1
 #define METHOD_AHASH 2
 

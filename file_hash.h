@@ -35,9 +35,10 @@ static void file_hash_compute(void* arg) {
     file_hash* f_hash = arg;
 
     FILE* f = fopen(f_hash->file_name, "rb");
-    if (!f)
-        DIE(errno, "Could not open file %s: %s\n", f_hash->file_name,
-            strerror(errno));
+    if (!f) {
+        LOG_ERR("Could not open file %s: %s\n", f_hash->file_name,
+                strerror(errno));
+    }
 
     usize file_content_len;
     pg_assert_int(file_info(f_hash->file_name, &file_content_len, NULL, NULL),
