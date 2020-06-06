@@ -34,6 +34,9 @@ $ ./dedup_release /path/to/image/directory --size 100000000
 # Scan files in the current directory and don't display a window for visualization
 $ ./dedup_release --windowless
 
+# Scan files in the current directory and be very loose in the duplicate detection (high distance)
+$ ./dedup_release --distance 10
+
 # Run the tests:
 $ ./test
 ```
