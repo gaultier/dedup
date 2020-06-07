@@ -50,6 +50,7 @@ static void options_parse(char* argv[], options* opts) {
     i32 help = false;
     i32 option;
     struct optparse options;
+    char* end = NULL;
 
     optparse_init(&options, argv);
     while ((option = optparse_long(&options, base_longopts, NULL)) != -1) {
@@ -61,13 +62,27 @@ static void options_parse(char* argv[], options* opts) {
                 help = true;
                 break;
             case 's':
-                opts->size = strtoull(options.optarg, NULL, 10);
+                opts->size = strtoull(options.optarg, &end, 10);
+                if (end && *end != '\0') {
+                    usage();
+                    DIE(EINVAL,
+                        "The `--size` option only accepts a numerical "
+                        "argument. Was: `%s`",
+                        options.optarg);
+                }
                 break;
             case 'W':
                 opts->windowless = true;
                 break;
             case 'd':
-                opts->distance = (u8)strtoul(options.optarg, NULL, 10);
+                opts->distance = (u8)strtoul(options.optarg, &end, 10);
+                if (end && *end != '\0') {
+                    usage();
+                    DIE(EINVAL,
+                        "The `--distance` option only accepts a numerical "
+                        "argument. Was: `%s`",
+                        options.optarg);
+                }
                 break;
             case '?':
             default:
