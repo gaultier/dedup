@@ -62,7 +62,7 @@ static bool img_ahash(const char* file_name, const u8* file_content,
                (usize)(*surface_src)->h, img_channels, img_thumbnail,
                THUMBNAIL_W, THUMBNAIL_H);
 
-    {
+    if (!opts.windowless) {
         LOG("img_channels=%u\n", img_channels);
         u8* const dbg_img =
             img_unpack_dbg(img_thumbnail, THUMBNAIL_W, THUMBNAIL_H, 3);
@@ -89,7 +89,7 @@ static bool img_ahash(const char* file_name, const u8* file_content,
         }
     }
 
-    {
+    if (!opts.windowless) {
         LOG("file=%s thumbnail_avg_value=%u\n", file_name, thumbnail_avg_value);
         u8 img_thumbnail_threshold_unpacked[THUMBNAIL_W * THUMBNAIL_H] = {0};
 
