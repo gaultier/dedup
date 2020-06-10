@@ -71,6 +71,23 @@ $ docker run -it dedup
 
 A few limits are defined in `config.h`. Once they have been edited, recompile and rerun `dedup`.
 
+## Cross-compiling for windows with mingw
+
+Prerequisites:
+- Mingw installed
+- Development libraries installed for SDL, SDL_image, SDL_ttf, e.g in `/tmp/x86_64-w64-mingw32/lib/`
+
+```sh
+$ make -j4 -B dedup_release CC=x86_64-w64-mingw32-gcc LDFLAGS="-L /tmp/x86_64-w64-mingw32/lib/"
+$ file dedup_release.exe
+dedup_release.exe: PE32+ executable (console) x86-64, for MS Windows
+```
+
+References:
+- https://www.libsdl.org/release/SDL2-2.0.12-win32-x64.zip
+- https://www.libsdl.org/projects/SDL_image/release/SDL2_image-devel-2.0.5-mingw.tar.gz
+- https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-devel-2.0.15-mingw.tar.gz
+
 
 ## LICENSE
 
