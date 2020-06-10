@@ -9,6 +9,7 @@
 #include <stddef.h>
 #include <sys/types.h>
 
+#define _POSIX_C_SOURCE 200112L
 typedef ssize_t isize;
 typedef size_t usize;
 typedef int64_t i64;

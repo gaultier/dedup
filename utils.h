@@ -6,8 +6,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef _WIN32
 #include <sys/stat.h>
 #include <unistd.h>
+#else
+#include <windows.h>
+#endif
 
 #include "config.h"
 
@@ -177,7 +181,15 @@ static u32 murmur3_32(const u8* key, usize len, u32 seed) {
     return h;
 }
 
-static usize cores_count() { return (usize)sysconf(_SC_NPROCESSORS_ONLN); }
+static usize cores_count() {
+#ifndef _WIN32
+    return (usize)sysconf(_SC_NPROCESSORS_ONLN);
+#else
+    SYSTEM_INFO sys_info;
+    GetSystemInfo(&sys_info);
+    return (usize)sys_info.dwNumberOfProcessors;
+#endif
+}
 
 static void print_humanize_usize(usize n, const char* unit) {
     if (n < 1024) {
