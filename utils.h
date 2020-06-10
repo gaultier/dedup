@@ -6,8 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef _WIN32
 #include <sys/stat.h>
+#ifndef _WIN32
 #include <unistd.h>
 #else
 #include <windows.h>
@@ -207,6 +207,7 @@ static void print_humanize_usize(usize n, const char* unit) {
     }
 }
 
+#ifndef _WIN32
 static i32 file_info(const char* path, usize* size, bool* is_dir,
                      bool* is_regular_file) {
     struct stat st;
@@ -223,3 +224,21 @@ static i32 file_info(const char* path, usize* size, bool* is_dir,
     if (is_regular_file) *is_regular_file = S_ISREG(st.st_mode);
     return 0;
 }
+#else
+static i32 file_info(const char* path, usize* size, bool* is_dir,
+                     bool* is_regular_file) {
+    struct _stat st;
+    if (_stat(path, &st) != 0) {
+        LOG_ERR("%s:%d:Could not stat `%s`: %s\n", __FILE__, __LINE__, path,
+                strerror(errno));
+        return errno;
+    }
+
+    if (size) *size = (usize)st.st_size;
+
+    if (is_dir) *is_dir = st.st_mode & _S_IFDIR;
+
+    if (is_regular_file) *is_regular_file = st.st_mode & _S_IFREG;
+    return 0;
+}
+#endif
