@@ -1,8 +1,3 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_error.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_surface.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -10,6 +5,7 @@
 #include "options.h"
 static options opts;
 
+#define SDL_MAIN_HANDLED
 #include "config.h"
 #include "file_hash.h"
 #include "files.h"

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <SDL2/SDL_error.h>
 #include <SDL2/SDL_ttf.h>
 #include <errno.h>
 

@@ -23,4 +23,4 @@ test: test.c
 all: dedup_release dedup_debug test
 
 clean:
-	rm -f *.o dedup_debug dedup_release 
+	rm -f *.o dedup_debug dedup_release

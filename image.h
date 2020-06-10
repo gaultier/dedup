@@ -1,11 +1,6 @@
 #pragma once
 
 #include <SDL2/SDL_image.h>
-#include <SDL2/SDL_mouse.h>
-#include <SDL2/SDL_pixels.h>
-#include <SDL2/SDL_render.h>
-#include <SDL2/SDL_rwops.h>
-#include <SDL2/SDL_surface.h>
 #include <errno.h>
 
 #include "config.h"
