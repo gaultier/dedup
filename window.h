@@ -2,7 +2,7 @@
 
 #include <SDL2/SDL_error.h>
 #include <SDL2/SDL_ttf.h>
-#include <sys/errno.h>
+#include <errno.h>
 
 #include "SDL2/SDL.h"
 #include "utils.h"
