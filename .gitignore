@@ -3,3 +3,4 @@
 dedup_debug
 dedup_release
 test
+*.exe
