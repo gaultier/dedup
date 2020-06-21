@@ -9,7 +9,7 @@
 #include <GL/gl.h>
 #endif
 
-#include "utils.h"
+#include "file_hash.h"
 
 static SDL_Surface *ui_texture_load(const char *path1, const char *path2,
                                     GLuint *texture_id) {
@@ -41,6 +41,7 @@ static SDL_Surface *ui_texture_load(const char *path1, const char *path2,
     SDL_Surface *img = SDL_CreateRGBSurfaceWithFormatFrom(
         img_pixels, img1->w, img1->h + img2->h + 3, img1->format->BitsPerPixel,
         img1->w * img1->format->BytesPerPixel, img1->format->format);
+    pg_assert_ptr(img, !=, NULL);
 
     glGenTextures(1, texture_id);
     glBindTexture(GL_TEXTURE_2D, *texture_id);
@@ -80,7 +81,13 @@ static void ui_init(SDL_Window **window) {
     glViewport(0, 0, window_width, window_height);
 }
 
-static void ui_run(SDL_Window *window) {
+static void ui_run(SDL_Window *window, file_hashes_buffer *matches) {
+    pg_assert_uint64(matches->len, >=, 2);
+
+    u32 texture_id;
+    SDL_Surface *s = ui_texture_load(matches->data[0].file_name,
+                                     matches->data[1].file_name, &texture_id);
+
     for (;;) {
         SDL_Event event;
         SDL_WaitEvent(&event);

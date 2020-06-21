@@ -89,5 +89,5 @@ int main(int argc, char* argv[]) {
     SDL_Window* window;
     ui_init(&window);
 
-    ui_run(window);
+    ui_run(window, &matches);
 }
