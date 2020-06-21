@@ -176,7 +176,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                 for (int i = 0; i < 2; i++) {
                     nk_layout_row_dynamic(ctx, 80, 1);
 
-                    struct nk_image img = {.handle = &texture_id,
+                    struct nk_image img = {.handle = (void *)texture_id,
                                            .w = s->w,
                                            .h = s->h,
                                            .region = {0, 0, s->w, s->h}};
