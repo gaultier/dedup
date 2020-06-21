@@ -9,7 +9,56 @@
 #include <GL/gl.h>
 #endif
 
+#define NK_INCLUDE_FIXED_TYPES
+#define NK_INCLUDE_STANDARD_IO
+#define NK_INCLUDE_STANDARD_VARARGS
+#define NK_INCLUDE_DEFAULT_ALLOCATOR
+#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
+#define NK_INCLUDE_FONT_BAKING
+#define NK_INCLUDE_DEFAULT_FONT
+#define NK_IMPLEMENTATION
+#undef NK_ASSERT
+#define NK_SDL_GL3_IMPLEMENTATION
+#include "nuklear.h"
+#include "nuklear_sdl_gl3.h"
+
+#define MAX_VERTEX_MEMORY 512 * 1024
+#define MAX_ELEMENT_MEMORY 128 * 1024
+
 #include "file_hash.h"
+
+static void ui_set_style(struct nk_context *ctx) {
+    struct nk_color table[NK_COLOR_COUNT];
+    table[NK_COLOR_TEXT] = nk_rgba(190, 190, 190, 255);
+    table[NK_COLOR_WINDOW] = nk_rgba(30, 33, 40, 215);
+    table[NK_COLOR_HEADER] = nk_rgba(181, 45, 69, 220);
+    table[NK_COLOR_BORDER] = nk_rgba(51, 55, 67, 255);
+    table[NK_COLOR_BUTTON] = nk_rgba(181, 45, 69, 255);
+    table[NK_COLOR_BUTTON_HOVER] = nk_rgba(190, 50, 70, 255);
+    table[NK_COLOR_BUTTON_ACTIVE] = nk_rgba(195, 55, 75, 255);
+    table[NK_COLOR_TOGGLE] = nk_rgba(51, 55, 67, 255);
+    table[NK_COLOR_TOGGLE_HOVER] = nk_rgba(45, 60, 60, 255);
+    table[NK_COLOR_TOGGLE_CURSOR] = nk_rgba(181, 45, 69, 255);
+    table[NK_COLOR_SELECT] = nk_rgba(51, 55, 67, 255);
+    table[NK_COLOR_SELECT_ACTIVE] = nk_rgba(181, 45, 69, 255);
+    table[NK_COLOR_SLIDER] = nk_rgba(51, 55, 67, 255);
+    table[NK_COLOR_SLIDER_CURSOR] = nk_rgba(181, 45, 69, 255);
+    table[NK_COLOR_SLIDER_CURSOR_HOVER] = nk_rgba(186, 50, 74, 255);
+    table[NK_COLOR_SLIDER_CURSOR_ACTIVE] = nk_rgba(191, 55, 79, 255);
+    table[NK_COLOR_PROPERTY] = nk_rgba(51, 55, 67, 255);
+    table[NK_COLOR_EDIT] = nk_rgba(51, 55, 67, 225);
+    table[NK_COLOR_EDIT_CURSOR] = nk_rgba(190, 190, 190, 255);
+    table[NK_COLOR_COMBO] = nk_rgba(51, 55, 67, 255);
+    table[NK_COLOR_CHART] = nk_rgba(51, 55, 67, 255);
+    table[NK_COLOR_CHART_COLOR] = nk_rgba(170, 40, 60, 255);
+    table[NK_COLOR_CHART_COLOR_HIGHLIGHT] = nk_rgba(255, 0, 0, 255);
+    table[NK_COLOR_SCROLLBAR] = nk_rgba(30, 33, 40, 255);
+    table[NK_COLOR_SCROLLBAR_CURSOR] = nk_rgba(64, 84, 95, 255);
+    table[NK_COLOR_SCROLLBAR_CURSOR_HOVER] = nk_rgba(70, 90, 100, 255);
+    table[NK_COLOR_SCROLLBAR_CURSOR_ACTIVE] = nk_rgba(75, 95, 105, 255);
+    table[NK_COLOR_TAB_HEADER] = nk_rgba(181, 45, 69, 220);
+    nk_style_from_table(ctx, table);
+}
 
 static SDL_Surface *ui_texture_load(const char *path1, const char *path2,
                                     GLuint *texture_id) {
@@ -53,7 +102,7 @@ static SDL_Surface *ui_texture_load(const char *path1, const char *path2,
     return img;
 }
 
-static void ui_init(SDL_Window **window) {
+static void *ui_init(SDL_Window **window) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,
                         SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -79,9 +128,20 @@ static void ui_init(SDL_Window **window) {
     i32 window_width, window_height;
     SDL_GetWindowSize(*window, &window_width, &window_height);
     glViewport(0, 0, window_width, window_height);
+
+    struct nk_context *ctx = nk_sdl_init(*window);
+    {
+        struct nk_font_atlas *atlas;
+        nk_sdl_font_stash_begin(&atlas);
+        nk_sdl_font_stash_end();
+    }
+    ui_set_style(ctx);
+    return ctx;
 }
 
-static void ui_run(SDL_Window *window, file_hashes_buffer *matches) {
+static void ui_run(SDL_Window *window, void *nuklear_ctx,
+                   file_hashes_buffer *matches) {
+    struct nk_context *ctx = nuklear_ctx;
     pg_assert_uint64(matches->len, >=, 2);
 
     u32 texture_id;

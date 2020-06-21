@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     if (matches.len == 0 || opts.windowless) return 0;
 
     SDL_Window* window;
-    ui_init(&window);
+    void* ctx = ui_init(&window);
 
-    ui_run(window, &matches);
+    ui_run(window, ctx, &matches);
 }
