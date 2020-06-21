@@ -1,6 +1,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_video.h>
 #pragma once
 #define GL_SILENCE_DEPRECATION 1
 #ifdef __APPLE__
@@ -151,9 +152,30 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                                      matches->data[1].file_name, &texture_id);
 
     for (;;) {
+        i32 window_width, window_height;
+        SDL_GetWindowSize(window, &window_width, &window_height);
+
         SDL_Event event;
+        nk_input_begin(ctx);
         SDL_WaitEvent(&event);
 
         if (event.type == SDL_QUIT) return;
+        nk_sdl_handle_event(&event);
+        nk_input_end(ctx);
+
+        if (nk_begin(ctx, "Image Deduper",
+                     nk_rect(0, 0, window_width, window_height),
+                     NK_WINDOW_BORDER | NK_WINDOW_TITLE)) {
+            nk_layout_row_begin(ctx, NK_DYNAMIC, window_height, 2);
+        }
+        nk_end(ctx);
+
+        glViewport(0, 0, window_width, window_height);
+        glClearColor(0, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        nk_sdl_render(NK_ANTI_ALIASING_ON, MAX_VERTEX_MEMORY,
+                      MAX_ELEMENT_MEMORY);
+        SDL_GL_SwapWindow(window);
     }
 }
