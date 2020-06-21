@@ -12,7 +12,6 @@ static options opts;
 #include "thread_pool.h"
 #include "ui.h"
 #include "utils.h"
-#include "window.h"
 
 void image_next(usize matches_count, usize* i) {
     *i = *i == (matches_count - 1) ? 0 : *i + 1;
@@ -88,7 +87,7 @@ int main(int argc, char* argv[]) {
     if (matches.len == 0 || opts.windowless) return 0;
 
     SDL_Window* window;
-    window_create(&window);
+    ui_init(&window);
 
     ui_run(window);
 }

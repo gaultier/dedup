@@ -4,7 +4,7 @@ CFLAGS = -Wall -Wextra -Wpedantic -Wno-padded -g -std=c99 -isystem /usr/local/in
 CFLAGS_RELEASE = -O2 -ffast-math
 CFLAGS_DEBUG = -fsanitize=address
 LDFLAGS = -flto
-LDLIBS = -lSDL2 -lSDL2_image -lpthread
+LDLIBS = -lSDL2 -lSDL2_image -lpthread -framework OpenGL
 
 .PHONY: clean all
 

@@ -6,7 +6,6 @@
 #include "config.h"
 #include "image_resize.h"
 #include "utils.h"
-#include "window.h"
 
 static u8* img_unpack_dbg(u8* img, usize width, usize height, u16 channels) {
     u8* out = pg_malloc(width * height * channels);
