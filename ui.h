@@ -20,8 +20,8 @@
 #define NK_IMPLEMENTATION
 #undef NK_ASSERT
 #define NK_SDL_GL3_IMPLEMENTATION
-#include "nuklear.h"
-#include "nuklear_sdl_gl3.h"
+#include "vendor/nuklear.h"
+#include "vendor/nuklear_sdl_gl3.h"
 
 #define MAX_VERTEX_MEMORY 512 * 1024
 #define MAX_ELEMENT_MEMORY 128 * 1024
@@ -151,6 +151,8 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
     SDL_Surface *s = ui_texture_load(matches->data[0].file_name,
                                      matches->data[1].file_name, &texture_id);
 
+    int img_selected = 0;
+
     for (;;) {
         i32 window_width, window_height;
         SDL_GetWindowSize(window, &window_width, &window_height);
@@ -165,8 +167,29 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
 
         if (nk_begin(ctx, "Image Deduper",
                      nk_rect(0, 0, window_width, window_height),
-                     NK_WINDOW_BORDER | NK_WINDOW_TITLE)) {
+                     NK_WINDOW_BORDER)) {
             nk_layout_row_begin(ctx, NK_DYNAMIC, window_height, 2);
+            nk_layout_row_push(ctx, 0.25f);
+            if (nk_group_begin(ctx, "Preview", 0)) {
+                nk_layout_row_dynamic(ctx, 0, 1);
+
+                for (int i = 0; i < 2; i++) {
+                    nk_layout_row_dynamic(ctx, 80, 1);
+
+                    struct nk_image img = {.handle = &texture_id,
+                                           .w = s->w,
+                                           .h = s->h,
+                                           .region = {0, 0, s->w, s->h}};
+                    if (nk_selectable_image_label(ctx, img, "An image",
+                                                  NK_TEXT_CENTERED,
+                                                  &img_selected)) {
+                        /* memset(state->img_selected, 0, 2 * sizeof(int)); */
+                        /* state->img_current = i; */
+                        /* state->img_selected[i] = 1; */
+                    }
+                }
+            }
+            nk_group_end(ctx);
         }
         nk_end(ctx);
 
