@@ -1,7 +1,5 @@
-
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_video.h>
+#include <string.h>
 #pragma once
 #define GL_SILENCE_DEPRECATION 1
 #ifdef __APPLE__
@@ -85,7 +83,7 @@ static void *ui_init(SDL_Window **window) {
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     *window = SDL_CreateWindow("dedup", SDL_WINDOWPOS_CENTERED,
-                               SDL_WINDOWPOS_CENTERED, 800, 600,
+                               SDL_WINDOWPOS_CENTERED, 1024, 768,
                                SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL |
                                    SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI);
     if (!*window) DIE(EINVAL, "Could not create window: %s\n", SDL_GetError());
@@ -146,7 +144,8 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                 nk_layout_row_dynamic(ctx, 0, 1);
 
                 for (usize i = 0; i < matches->len; i++) {
-                    SDL_Surface *surface = matches->data[i].h.img.surface_src;
+                    file_hash *f_hash = &matches->data[i];
+                    SDL_Surface *surface = f_hash->h.img.surface_src;
 
                     nk_layout_row_dynamic(ctx, 80, 1);
 
@@ -155,9 +154,10 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                         .w = surface->w,
                         .h = surface->h,
                         .region = {0, 0, surface->w, surface->h}};
-                    if (nk_selectable_image_label(ctx, img, "An image",
-                                                  NK_TEXT_CENTERED,
-                                                  &img_selected[i])) {
+
+                    if (nk_selectable_image_label(
+                            ctx, img, file_name(f_hash->file_name),
+                            NK_TEXT_CENTERED, &img_selected[i])) {
                         memset(img_selected, 0, sizeof(i32) * matches->len);
                         img_current = i;
                         img_selected[i] = 1;

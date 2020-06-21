@@ -242,3 +242,15 @@ static i32 file_info(const char* path, usize* size, bool* is_dir,
     return 0;
 }
 #endif
+
+static const char* file_name(const char* path) {
+    pg_assert_ptr(path, !=, NULL);
+
+    const char sep = '/';  // TODO: check it works on windows
+    const char* file = strrchr(path, sep);
+    pg_assert_ptr(file, !=, NULL);
+
+    if (strlen(file) > 1) file++;  // Remove first '/'
+
+    return file;
+}
