@@ -61,46 +61,16 @@ static void ui_set_style(struct nk_context *ctx) {
     nk_style_from_table(ctx, table);
 }
 
-static SDL_Surface *ui_texture_load(const char *path1, const char *path2,
-                                    GLuint *texture_id) {
-    SDL_Surface *img1 = IMG_Load(path1);
-    pg_assert_ptr(img1, !=, NULL);
-
-    SDL_Surface *img2 = IMG_Load(path2);
-    pg_assert_ptr(img2, !=, NULL);
-
-    pg_assert_int(img1->format->BytesPerPixel, ==, img2->format->BytesPerPixel);
-    pg_assert_int(img1->w, ==, img2->w);
-    pg_assert_int(img1->h, ==, img2->h);
-
-    u8 *img_pixels =
-        malloc((size_t)(img1->w * img1->h * img1->format->BytesPerPixel +
-                        img2->w * img2->h * img2->format->BytesPerPixel +
-                        img1->w * img2->format->BytesPerPixel));
-    pg_assert_ptr(img_pixels, !=, NULL);
-
-    memset(img_pixels, 255,
-           img1->w * img1->h * img1->format->BytesPerPixel +
-               img2->w * img2->h * img2->format->BytesPerPixel);
-    memcpy(img_pixels, img1->pixels,
-           img1->w * img1->h * img1->format->BytesPerPixel);
-    memcpy(img_pixels + img1->w * img1->h * img1->format->BytesPerPixel +
-               img1->w * img2->format->BytesPerPixel,
-           img2->pixels, img2->w * img2->h * img2->format->BytesPerPixel);
-
-    SDL_Surface *img = SDL_CreateRGBSurfaceWithFormatFrom(
-        img_pixels, img1->w, img1->h + img2->h + 3, img1->format->BitsPerPixel,
-        img1->w * img1->format->BytesPerPixel, img1->format->format);
-    pg_assert_ptr(img, !=, NULL);
-
+static void ui_texture_load(SDL_Surface *surface, GLuint *texture_id) {
     glGenTextures(1, texture_id);
     glBindTexture(GL_TEXTURE_2D, *texture_id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->w, img->h, 0, GL_RGB,
-                 GL_UNSIGNED_BYTE, img->pixels);
-    return img;
+    // FIXME: format
+    pg_assert_int(surface->format->BytesPerPixel, ==, 3);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, GL_RGB,
+                 GL_UNSIGNED_BYTE, surface->pixels);
 }
 
 static void *ui_init(SDL_Window **window) {
@@ -147,11 +117,13 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
     struct nk_context *ctx = nuklear_ctx;
     pg_assert_uint64(matches->len, >=, 2);
 
-    u32 texture_id;
-    SDL_Surface *s = ui_texture_load(matches->data[0].file_name,
-                                     matches->data[1].file_name, &texture_id);
+    GLuint *texture_ids = pg_malloc(sizeof(GLuint) * matches->len);
+    for (usize i = 0; i < matches->len; i++)
+        ui_texture_load(matches->data[i].h.img.surface_src, &texture_ids[i]);
 
-    int img_selected = 0;
+    i32 *img_selected = pg_malloc(sizeof(i32) * matches->len);
+    memset(img_selected, 0, sizeof(i32) * matches->len);
+    i32 img_current = 0;
 
     for (;;) {
         i32 window_width, window_height;
@@ -173,19 +145,22 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
             if (nk_group_begin(ctx, "Preview", 0)) {
                 nk_layout_row_dynamic(ctx, 0, 1);
 
-                for (int i = 0; i < 2; i++) {
+                for (usize i = 0; i < matches->len; i++) {
+                    SDL_Surface *surface = matches->data[i].h.img.surface_src;
+
                     nk_layout_row_dynamic(ctx, 80, 1);
 
-                    struct nk_image img = {.handle = (void *)texture_id,
-                                           .w = s->w,
-                                           .h = s->h,
-                                           .region = {0, 0, s->w, s->h}};
+                    struct nk_image img = {
+                        .handle = (void *)(texture_ids[i]),
+                        .w = surface->w,
+                        .h = surface->h,
+                        .region = {0, 0, surface->w, surface->h}};
                     if (nk_selectable_image_label(ctx, img, "An image",
                                                   NK_TEXT_CENTERED,
-                                                  &img_selected)) {
-                        /* memset(state->img_selected, 0, 2 * sizeof(int)); */
-                        /* state->img_current = i; */
-                        /* state->img_selected[i] = 1; */
+                                                  &img_selected[i])) {
+                        memset(img_selected, 0, sizeof(i32) * matches->len);
+                        img_current = i;
+                        img_selected[i] = 1;
                     }
                 }
             }
