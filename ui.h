@@ -122,8 +122,11 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
     i32 *img_selected = pg_malloc(sizeof(i32) * matches->len);
     memset(img_selected, 0, sizeof(i32) * matches->len);
     i32 img_current = 0;
+    SDL_Surface *surface_current;
 
     for (;;) {
+        surface_current = matches->data[img_current].h.img.surface_src;
+
         i32 window_width, window_height;
         SDL_GetWindowSize(window, &window_width, &window_height);
 
@@ -165,6 +168,45 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                 }
             }
             nk_group_end(ctx);
+
+            nk_layout_row_push(ctx, 0.75f);
+
+            if (nk_group_begin(ctx, "Visualization", 0)) {
+                {
+                    nk_layout_row_begin(ctx, NK_DYNAMIC, 0, 2);
+                    nk_layout_row_push(ctx, 0.5f);
+                    if (nk_button_symbol_label(ctx, NK_SYMBOL_MINUS, "Delete",
+                                               NK_TEXT_CENTERED)) {
+                    }
+                    if (nk_button_symbol_label(ctx, NK_SYMBOL_MINUS, "Delete",
+                                               NK_TEXT_CENTERED)) {
+                    }
+                    nk_layout_row_end(ctx);
+                }
+
+                nk_layout_row_begin(ctx, NK_DYNAMIC, window_height * 0.75f, 2);
+                nk_layout_row_push(ctx, 0.5f);
+
+                struct nk_image img_a = {
+                    .handle = (void *)texture_ids[img_current],
+                    .w = surface_current->w,
+                    .h = surface_current->h,
+                    .region = {0, 0, surface_current->w, surface_current->h}};
+                nk_image(ctx, img_a);
+
+                nk_layout_row_push(ctx, 0.5f);
+                {
+                    int i = (img_current + 1);  // FIXME
+                    SDL_Surface *next = matches->data[i].h.img.surface_src;
+                    struct nk_image img_b = {
+                        .handle = (void *)texture_ids[i],
+                        .w = next->w,
+                        .h = next->h,
+                        .region = {0, 0, next->w, next->h}};
+                    nk_image(ctx, img_b);
+                }
+                nk_layout_row_end(ctx);
+            }
         }
         nk_end(ctx);
 
