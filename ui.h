@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <string.h>
+
 #pragma once
 #define GL_SILENCE_DEPRECATION 1
 #ifdef __APPLE__
@@ -112,6 +113,8 @@ static void *ui_init(SDL_Window **window) {
 
 static void ui_run(SDL_Window *window, void *nuklear_ctx,
                    file_hashes_buffer *matches) {
+    static char text_buffer[MAX_FILE_NAME_LEN * 2 + 10];
+
     struct nk_context *ctx = nuklear_ctx;
     pg_assert_uint64(matches->len, >=, 2);
 
@@ -148,21 +151,26 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
             if (nk_group_begin(ctx, "Preview", 0)) {
                 nk_layout_row_dynamic(ctx, 0, 1);
 
-                for (usize i = 0; i < matches->len; i++) {
-                    file_hash *f_hash = &matches->data[i];
-                    SDL_Surface *surface = f_hash->h.img.surface_src;
+                for (usize i = 0; i < matches->len; i += 2) {
+                    file_hash *f_hash_1 = &matches->data[i];
+                    SDL_Surface *surface_1 = f_hash_1->h.img.surface_src;
 
                     nk_layout_row_dynamic(ctx, 50, 1);
 
                     struct nk_image img = {
                         .handle = (void *)(texture_ids[i]),
-                        .w = surface->w,
-                        .h = surface->h,
-                        .region = {0, 0, surface->w, surface->h}};
+                        .w = surface_1->w,
+                        .h = surface_1->h,
+                        .region = {0, 0, surface_1->w, surface_1->h}};
 
-                    if (nk_selectable_image_label(
-                            ctx, img, file_name(f_hash->file_name),
-                            NK_TEXT_CENTERED, &img_selected[i])) {
+                    file_hash *f_hash_2 = &matches->data[i + 1];
+                    snprintf(text_buffer, ARR_SIZE(text_buffer), "%s %s",
+                             file_name(f_hash_1->file_name),
+                             file_name(f_hash_2->file_name));
+
+                    if (nk_selectable_image_label(ctx, img, text_buffer,
+                                                  NK_TEXT_CENTERED,
+                                                  &img_selected[i])) {
                         memset(img_selected, 0, sizeof(i32) * matches->len);
                         img_current = i;
                         img_selected[i] = 1;
@@ -197,9 +205,9 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                 nk_image(ctx, img_a);
 
                 nk_layout_row_push(ctx, 0.5f);
-                int i = (img_current + 1);  // FIXME
+                i32 i = (img_current + 1);
                 {
-                    pg_assert_uint64(i, <, matches->len);
+                    pg_assert_int32(i, <, matches->len);
 
                     SDL_Surface *next = matches->data[i].h.img.surface_src;
                     struct nk_image img_b = {
