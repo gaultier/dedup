@@ -197,6 +197,8 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                 nk_layout_row_push(ctx, 0.5f);
                 {
                     int i = (img_current + 1);  // FIXME
+                    pg_assert_uint64(i, <, matches->len);
+
                     SDL_Surface *next = matches->data[i].h.img.surface_src;
                     struct nk_image img_b = {
                         .handle = (void *)texture_ids[i],
