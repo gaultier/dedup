@@ -138,7 +138,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
         if (nk_begin(ctx, "Image Deduper",
                      nk_rect(0, 0, window_width, window_height),
                      NK_WINDOW_BORDER)) {
-            nk_layout_row_begin(ctx, NK_DYNAMIC, window_height, 2);
+            nk_layout_row_begin(ctx, NK_DYNAMIC, window_height - 30, 2);
             nk_layout_row_push(ctx, 0.25f);
             if (nk_group_begin(ctx, "Preview", 0)) {
                 nk_layout_row_dynamic(ctx, 0, 1);
@@ -147,7 +147,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                     file_hash *f_hash = &matches->data[i];
                     SDL_Surface *surface = f_hash->h.img.surface_src;
 
-                    nk_layout_row_dynamic(ctx, 80, 1);
+                    nk_layout_row_dynamic(ctx, 50, 1);
 
                     struct nk_image img = {
                         .handle = (void *)(texture_ids[i]),
