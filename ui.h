@@ -123,9 +123,11 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
     memset(img_selected, 0, sizeof(i32) * matches->len);
     i32 img_current = 0;
     SDL_Surface *surface_current;
+    file_hash *f_hash;
 
     for (;;) {
-        surface_current = matches->data[img_current].h.img.surface_src;
+        f_hash = &matches->data[img_current];
+        surface_current = f_hash->h.img.surface_src;
 
         i32 window_width, window_height;
         SDL_GetWindowSize(window, &window_width, &window_height);
@@ -142,7 +144,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                      nk_rect(0, 0, window_width, window_height),
                      NK_WINDOW_BORDER)) {
             nk_layout_row_begin(ctx, NK_DYNAMIC, window_height - 30, 2);
-            nk_layout_row_push(ctx, 0.25f);
+            nk_layout_row_push(ctx, 0.2f);
             if (nk_group_begin(ctx, "Preview", 0)) {
                 nk_layout_row_dynamic(ctx, 0, 1);
 
@@ -169,7 +171,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
             }
             nk_group_end(ctx);
 
-            nk_layout_row_push(ctx, 0.75f);
+            nk_layout_row_push(ctx, 0.80f);
 
             if (nk_group_begin(ctx, "Visualization", 0)) {
                 {
@@ -195,8 +197,8 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                 nk_image(ctx, img_a);
 
                 nk_layout_row_push(ctx, 0.5f);
+                int i = (img_current + 1);  // FIXME
                 {
-                    int i = (img_current + 1);  // FIXME
                     pg_assert_uint64(i, <, matches->len);
 
                     SDL_Surface *next = matches->data[i].h.img.surface_src;
@@ -208,6 +210,15 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                     nk_image(ctx, img_b);
                 }
                 nk_layout_row_end(ctx);
+
+                {
+                    nk_layout_row_begin(ctx, NK_DYNAMIC, 0, 2);
+                    nk_layout_row_push(ctx, 0.5f);
+                    nk_label(ctx, f_hash->file_name, NK_TEXT_ALIGN_CENTERED);
+                    nk_label(ctx, matches->data[i].file_name,
+                             NK_TEXT_ALIGN_CENTERED);
+                    nk_layout_row_end(ctx);
+                }
             }
         }
         nk_end(ctx);
