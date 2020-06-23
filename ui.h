@@ -113,14 +113,15 @@ static void *ui_init(SDL_Window **window) {
 }
 
 static void ui_delete_match(file_hashes_buffer *matches, usize i) {
-    pg_assert_uint64(i, >, 1);
+    pg_assert_uint64(i, >=, 0);
     pg_assert_uint64(i, <, matches->len - 1);
 
     memcpy(&matches->data[i], &matches->data[matches->len - 2],
            sizeof(file_hash));
     memcpy(&matches->data[i + 1], &matches->data[matches->len - 1],
            sizeof(file_hash));
-    matches->len -= 2;
+
+    matches->len = matches->len == 2 ? 0 : matches->len - 2;
 }
 
 static void ui_on_click_delete(file_hashes_buffer *matches, usize i,
@@ -202,60 +203,68 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
             nk_layout_row_push(ctx, 0.80f);
 
             if (nk_group_begin(ctx, "Visualization", 0)) {
-                {
-                    nk_layout_row_begin(ctx, NK_DYNAMIC, 0, 2);
-                    nk_layout_row_push(ctx, 0.5f);
-                    if (nk_button_symbol_label(ctx, NK_SYMBOL_MINUS, "Delete",
-                                               NK_TEXT_CENTERED)) {
-                        file_hash *f_hash_1 = &matches->data[img_current];
-                        ui_on_click_delete(matches, (usize)img_current,
-                                           f_hash_1->file_name);
-                        // TODO: remove elem from list
+                if (matches->len > 0) {
+                    {
+                        nk_layout_row_begin(ctx, NK_DYNAMIC, 0, 2);
+                        nk_layout_row_push(ctx, 0.5f);
+                        if (nk_button_symbol_label(ctx, NK_SYMBOL_MINUS,
+                                                   "Delete",
+                                                   NK_TEXT_CENTERED)) {
+                            file_hash *f_hash_1 = &matches->data[img_current];
+                            ui_on_click_delete(matches, (usize)img_current,
+                                               f_hash_1->file_name);
+                        }
+                        if (nk_button_symbol_label(ctx, NK_SYMBOL_MINUS,
+                                                   "Delete",
+                                                   NK_TEXT_CENTERED)) {
+                            file_hash *f_hash_2 =
+                                &matches->data[img_current + 1];
+                            ui_on_click_delete(matches, (usize)img_current,
+                                               f_hash_2->file_name);
+                        }
+
+                        nk_layout_row_end(ctx);
                     }
-                    if (nk_button_symbol_label(ctx, NK_SYMBOL_MINUS, "Delete",
-                                               NK_TEXT_CENTERED)) {
-                        file_hash *f_hash_2 = &matches->data[img_current + 1];
-                        ui_on_click_delete(matches, (usize)img_current,
-                                           f_hash_2->file_name);
+                    if (matches->len == 0) goto end;
+
+                    nk_layout_row_begin(ctx, NK_DYNAMIC, window_height * 0.75f,
+                                        2);
+                    nk_layout_row_push(ctx, 0.5f);
+
+                    struct nk_image img_a = {
+                        .handle = (void *)texture_ids[img_current],
+                        .w = surface_current->w,
+                        .h = surface_current->h,
+                        .region = {0, 0, surface_current->w,
+                                   surface_current->h}};
+                    nk_image(ctx, img_a);
+
+                    nk_layout_row_push(ctx, 0.5f);
+                    i32 i = (img_current + 1);
+                    {
+                        SDL_Surface *next = matches->data[i].h.img.surface_src;
+                        struct nk_image img_b = {
+                            .handle = (void *)texture_ids[i],
+                            .w = next->w,
+                            .h = next->h,
+                            .region = {0, 0, next->w, next->h}};
+                        nk_image(ctx, img_b);
                     }
                     nk_layout_row_end(ctx);
-                }
 
-                nk_layout_row_begin(ctx, NK_DYNAMIC, window_height * 0.75f, 2);
-                nk_layout_row_push(ctx, 0.5f);
-
-                struct nk_image img_a = {
-                    .handle = (void *)texture_ids[img_current],
-                    .w = surface_current->w,
-                    .h = surface_current->h,
-                    .region = {0, 0, surface_current->w, surface_current->h}};
-                nk_image(ctx, img_a);
-
-                nk_layout_row_push(ctx, 0.5f);
-                i32 i = (img_current + 1);
-                {
-                    pg_assert_int32(i, <, matches->len);
-
-                    SDL_Surface *next = matches->data[i].h.img.surface_src;
-                    struct nk_image img_b = {
-                        .handle = (void *)texture_ids[i],
-                        .w = next->w,
-                        .h = next->h,
-                        .region = {0, 0, next->w, next->h}};
-                    nk_image(ctx, img_b);
-                }
-                nk_layout_row_end(ctx);
-
-                {
-                    nk_layout_row_begin(ctx, NK_DYNAMIC, 0, 2);
-                    nk_layout_row_push(ctx, 0.5f);
-                    nk_label(ctx, f_hash->file_name, NK_TEXT_ALIGN_CENTERED);
-                    nk_label(ctx, matches->data[i].file_name,
-                             NK_TEXT_ALIGN_CENTERED);
-                    nk_layout_row_end(ctx);
+                    {
+                        nk_layout_row_begin(ctx, NK_DYNAMIC, 0, 2);
+                        nk_layout_row_push(ctx, 0.5f);
+                        nk_label(ctx, f_hash->file_name,
+                                 NK_TEXT_ALIGN_CENTERED);
+                        nk_label(ctx, matches->data[i].file_name,
+                                 NK_TEXT_ALIGN_CENTERED);
+                        nk_layout_row_end(ctx);
+                    }
                 }
             }
         }
+    end:
         nk_end(ctx);
 
         glViewport(0, 0, window_width, window_height);
