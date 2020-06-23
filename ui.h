@@ -112,6 +112,25 @@ static void *ui_init(SDL_Window **window) {
     return ctx;
 }
 
+static void ui_delete_match(file_hashes_buffer *matches, usize i) {
+    pg_assert_uint64(i, >, 1);
+    pg_assert_uint64(i, <, matches->len - 1);
+
+    memcpy(&matches->data[i], &matches->data[matches->len - 2],
+           sizeof(file_hash));
+    memcpy(&matches->data[i + 1], &matches->data[matches->len - 1],
+           sizeof(file_hash));
+    matches->len -= 2;
+}
+
+static void ui_on_click_delete(file_hashes_buffer *matches, usize i,
+                               const char *path_to_delete) {
+    pg_assert_int(i % 2, ==, 0);
+
+    file_move_to_trash(path_to_delete);
+    ui_delete_match(matches, i);
+}
+
 static void ui_run(SDL_Window *window, void *nuklear_ctx,
                    file_hashes_buffer *matches) {
     static char text_buffer[MAX_FILE_NAME_LEN * 2 + 10];
@@ -189,13 +208,15 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                     if (nk_button_symbol_label(ctx, NK_SYMBOL_MINUS, "Delete",
                                                NK_TEXT_CENTERED)) {
                         file_hash *f_hash_1 = &matches->data[img_current];
-                        file_move_to_trash(f_hash_1->file_name);
+                        ui_on_click_delete(matches, (usize)img_current,
+                                           f_hash_1->file_name);
                         // TODO: remove elem from list
                     }
                     if (nk_button_symbol_label(ctx, NK_SYMBOL_MINUS, "Delete",
                                                NK_TEXT_CENTERED)) {
                         file_hash *f_hash_2 = &matches->data[img_current + 1];
-                        file_move_to_trash(f_hash_2->file_name);
+                        ui_on_click_delete(matches, (usize)img_current,
+                                           f_hash_2->file_name);
                     }
                     nk_layout_row_end(ctx);
                 }
