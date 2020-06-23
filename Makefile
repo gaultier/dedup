@@ -17,8 +17,8 @@ dedup_debug: $(C_FILES) $(H_FILES)
 dedup_release: $(C_FILES) $(H_FILES)
 	$(CC) $(C_FILES) $(CFLAGS) $(CFLAGS_RELEASE) $(LDFLAGS) $(LDLIBS) -o $@
 
-test: test.c
-	$(CC) -std=c99 -g $(CFLAGS_DEBUG) $^ vendor/munit.c -o $@
+test: test.c dedup_debug
+	$(CC) -std=c99 -g $(CFLAGS_DEBUG) test.c vendor/munit.c -o $@
 
 all: dedup_release dedup_debug test
 

@@ -124,6 +124,16 @@ static void* pg_malloc(usize size) {
     return mem;
 }
 
+static void* pg_realloc(void* ptr, usize size) {
+    void* mem = realloc(ptr, size);
+    if (!mem)
+        DIE(ENOMEM, "Could not reallocate %zu bytes, out-of-memory\n", size);
+
+    LOG_DEBUG("%lu\n", size);
+
+    return mem;
+}
+
 static void pg_free(void* ptr) { free(ptr); }
 
 static u8 avg(u8* buffer, usize buffer_len) {
@@ -243,7 +253,7 @@ static i32 file_info(const char* path, usize* size, bool* is_dir,
 }
 #endif
 
-static const char* file_name(const char* path) {
+static const char* path_file_name(const char* path) {
     pg_assert_ptr(path, !=, NULL);
 
     const char sep = '/';  // TODO: check it works on windows
@@ -253,4 +263,58 @@ static const char* file_name(const char* path) {
     if (strlen(file) > 1) file++;  // Remove first '/'
 
     return file;
+}
+
+static const char* path_home() {
+    const char* home_path = getenv("HOME");
+    pg_assert_ptr(home_path, !=, NULL);
+    return home_path;
+}
+
+static bool path_trash(char* path, usize* len, usize capacity) {
+    const char* const trash = ".Trash";  // FIXME
+    const usize trash_len = sizeof(trash) - 1;
+    const char* const home = path_home();
+    const usize home_len = strlen(home);
+
+    const usize final_len = home_len + trash_len + 1 + 1;
+    if (final_len > capacity) return false;
+
+    pg_assert_int(snprintf(path, capacity, "%s/%s", home, trash), ==,
+                  final_len);
+
+    *len = final_len;
+
+    return true;
+}
+
+static int file_move_to_trash(const char* path) {
+    usize path_final_capacity = 4000;
+    usize path_final_len = 0;
+    char* path_final = pg_malloc(path_final_capacity);
+
+    path_trash(path_final, &path_final_len, path_final_capacity);
+
+    {
+        const usize needed_len = strlen(path) + path_final_len + 1 + 1;
+        if (needed_len > path_final_capacity) {
+            path_final = pg_realloc(path_final, needed_len);
+            path_final_capacity = needed_len;
+        }
+    }
+
+    snprintf(path_final + path_final_len, path_final_capacity - path_final_len,
+             "/%s", path_file_name(path));
+
+    LOG("Moving file `%s` to `%s`\n", path, path_final);
+
+    int ret = rename(path, path_final);
+
+    free(path_final);
+
+    if (ret != 0) {
+        LOG_ERR("Could not move file `%s` to the bin: %s\n", path,
+                strerror(errno));
+    }
+    return ret;
 }

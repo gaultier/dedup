@@ -1,3 +1,4 @@
+
 #include "image_resize.h"
 #include "utils.h"
 #include "vendor/munit.h"
@@ -125,34 +126,35 @@ static MunitResult test_img_resize_red_2x(const MunitParameter params[],
     return MUNIT_OK;
 }
 
-static MunitResult test_big_image(const MunitParameter params[], void* data) {
+static MunitResult test_file_move_to_trash(const MunitParameter params[],
+                                           void* data) {
     (void)params;
     (void)data;
 
-    /* u8* img; */
-    /* usize img_len, img_width, img_height, img_data_size, img_data_offset; */
-    /* bmp_load("/Users/pgaultier/Downloads/wallpaper.bmp", &img, &img_len, */
-    /*          &img_width, &img_height, &img_data_size, &img_data_offset); */
-    /* img += img_data_offset; */
+    char path[100] = "/tmp/test_file_move_to_trash.XXXXXX";
+    munit_assert_ptr(mktemp(path), !=, NULL);
 
-    /* u8* thumbnail_expected; */
-    /* usize thumbnail_expected_len, thumbnail_expected_width, */
-    /*     thumbnail_expected_height, thumbnail_expected_data_size, */
-    /*     thumbnail_expected_data_offset; */
-    /* bmp_load("/Users/pgaultier/Downloads/wallpaper_thumbnail.bmp", */
-    /*          &thumbnail_expected, &thumbnail_expected_len, */
-    /*          &thumbnail_expected_width, &thumbnail_expected_height, */
-    /*          &thumbnail_expected_data_size, &thumbnail_expected_data_offset);
-     */
-    /* thumbnail_expected += thumbnail_expected_data_offset; */
+    const char* file_name = path_file_name(path);
 
-    /* u8 thumbnail[THUMBNAIL_H * THUMBNAIL_W] = {42, 42, 42}; */
-    /* img_resize(img, img_width, img_height, 3, thumbnail, THUMBNAIL_W, */
-    /*            THUMBNAIL_H); */
+    munit_assert_memory_equal(23, file_name, "test_file_move_to_trash");
 
-    /* for (usize i = 0; i < THUMBNAIL_W * THUMBNAIL_H; i++) { */
-    /*     munit_assert_uint8(thumbnail[i], ==, thumbnail_expected[i * 3]); */
-    /* } */
+    file_move_to_trash(path);
+
+    FILE* file = fopen(path, "r");
+    const int err = errno;
+
+    munit_assert_ptr(file, ==, NULL);
+    munit_assert_int(err, ==, ENOENT);
+
+    char trash[4000] = "0";
+    usize trash_len = 0;
+    path_trash(trash, &trash_len, ARR_SIZE(trash));
+
+    char path_in_trash[4000] = "0";
+    snprintf(path_in_trash, ARR_SIZE(path_in_trash), "%s/%s", trash, file_name);
+
+    file = fopen(path_in_trash, "r");
+    munit_assert_ptr(file, !=, NULL);
 
     return MUNIT_OK;
 }
@@ -169,6 +171,10 @@ static MunitTest test_suite_tests[] = {
     {
         .name = "img_resize_red_2x",
         .test = test_img_resize_red_2x,
+    },
+    {
+        .name = "file_move_to_trash",
+        .test = test_file_move_to_trash,
     },
     {0},
 };

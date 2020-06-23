@@ -1,5 +1,7 @@
 #include <SDL2/SDL.h>
 
+#include "utils.h"
+
 #pragma once
 #define GL_SILENCE_DEPRECATION 1
 #ifdef __APPLE__
@@ -110,21 +112,6 @@ static void *ui_init(SDL_Window **window) {
     return ctx;
 }
 
-static int file_move_to_bin(const char *path) {
-    const char *bin_path = "/Users/pgaultier/.Trash";
-    static char buffer[2 * MAX_FILE_NAME_LEN];  // FIXME?
-    snprintf(buffer, ARR_SIZE(buffer), "%s/%s", bin_path, file_name(path));
-
-    LOG("Moving file `%s` to `%s`\n", path, buffer);
-
-    int ret = rename(path, buffer);
-    if (ret != 0) {
-        LOG_ERR("Could not move file `%s` to the bin: %s\n", path,
-                strerror(errno));
-    }
-    return ret;
-}
-
 static void ui_run(SDL_Window *window, void *nuklear_ctx,
                    file_hashes_buffer *matches) {
     static char text_buffer[MAX_FILE_NAME_LEN * 2 + 10];
@@ -179,8 +166,8 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
 
                     file_hash *f_hash_2 = &matches->data[i + 1];
                     snprintf(text_buffer, ARR_SIZE(text_buffer), "%s %s",
-                             file_name(f_hash_1->file_name),
-                             file_name(f_hash_2->file_name));
+                             path_file_name(f_hash_1->file_name),
+                             path_file_name(f_hash_2->file_name));
 
                     if (nk_selectable_image_label(ctx, img, text_buffer,
                                                   NK_TEXT_CENTERED,
@@ -202,13 +189,13 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                     if (nk_button_symbol_label(ctx, NK_SYMBOL_MINUS, "Delete",
                                                NK_TEXT_CENTERED)) {
                         file_hash *f_hash_1 = &matches->data[img_current];
-                        file_move_to_bin(f_hash_1->file_name);
+                        file_move_to_trash(f_hash_1->file_name);
                         // TODO: remove elem from list
                     }
                     if (nk_button_symbol_label(ctx, NK_SYMBOL_MINUS, "Delete",
                                                NK_TEXT_CENTERED)) {
                         file_hash *f_hash_2 = &matches->data[img_current + 1];
-                        file_move_to_bin(f_hash_2->file_name);
+                        file_move_to_trash(f_hash_2->file_name);
                     }
                     nk_layout_row_end(ctx);
                 }
