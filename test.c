@@ -131,17 +131,22 @@ static MunitResult test_file_move_to_trash(const MunitParameter params[],
     (void)params;
     (void)data;
 
-    char path[100] = "/tmp/test_file_move_to_trash.XXXXXX";
-    munit_assert_ptr(mktemp(path), !=, NULL);
+    char path[] = "/tmp/test_file_move_to_trash.txt";
+    {
+        FILE* file = fopen(path, "w");
+        munit_assert_ptr(path, !=, NULL);
+        fclose(file);
+    }
 
     const char* file_name = path_file_name(path);
 
-    munit_assert_memory_equal(23, file_name, "test_file_move_to_trash");
+    munit_assert_string_equal(file_name, "test_file_move_to_trash.txt");
 
-    munit_assert_int(file_move_to_trash(path), ==, 0);
+    int err = file_move_to_trash(path);
+    munit_assert_int(err, ==, 0);
 
     FILE* file = fopen(path, "r");
-    const int err = errno;
+    err = errno;
 
     munit_assert_ptr(file, ==, NULL);
     munit_assert_int(err, ==, ENOENT);
