@@ -144,13 +144,8 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
     i32 *img_selected = pg_malloc(sizeof(i32) * matches->len);
     memset(img_selected, 0, sizeof(i32) * matches->len);
     i32 img_current = 0;
-    SDL_Surface *surface_current;
-    file_hash *f_hash;
 
     for (;;) {
-        f_hash = &matches->data[img_current];
-        surface_current = f_hash->h.img.surface_src;
-
         i32 window_width, window_height;
         SDL_GetWindowSize(window, &window_width, &window_height);
 
@@ -202,6 +197,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
 
             if (nk_group_begin(ctx, "Visualization", 0)) {
                 if (matches->len > 0) {
+                    // Delete buttons
                     {
                         nk_layout_row_begin(ctx, NK_DYNAMIC, 0, 2);
                         nk_layout_row_push(ctx, 0.5f);
@@ -225,35 +221,43 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                     }
                     if (matches->len == 0) goto end;
 
-                    nk_layout_row_begin(ctx, NK_DYNAMIC, window_height * 0.75f,
-                                        2);
-                    nk_layout_row_push(ctx, 0.5f);
-
-                    struct nk_image img_a = {
-                        .handle = {.id = (i32)texture_ids[img_current]},
-                        .w = surface_current->w,
-                        .h = surface_current->h,
-                        .region = {0, 0, surface_current->w,
-                                   surface_current->h}};
-                    nk_image(ctx, img_a);
-
-                    nk_layout_row_push(ctx, 0.5f);
                     i32 i = (img_current + 1);
+                    // Images
                     {
-                        SDL_Surface *next = matches->data[i].h.img.surface_src;
-                        struct nk_image img_b = {
-                            .handle = {.id = (i32)texture_ids[i]},
-                            .w = next->w,
-                            .h = next->h,
-                            .region = {0, 0, next->w, next->h}};
-                        nk_image(ctx, img_b);
-                    }
-                    nk_layout_row_end(ctx);
+                        nk_layout_row_begin(ctx, NK_DYNAMIC,
+                                            window_height * 0.75f, 2);
+                        nk_layout_row_push(ctx, 0.5f);
 
+                        SDL_Surface *surface_current =
+                            matches->data[img_current].h.img.surface_src;
+
+                        struct nk_image img_a = {
+                            .handle = {.id = (i32)texture_ids[img_current]},
+                            .w = surface_current->w,
+                            .h = surface_current->h,
+                            .region = {0, 0, surface_current->w,
+                                       surface_current->h}};
+                        nk_image(ctx, img_a);
+
+                        nk_layout_row_push(ctx, 0.5f);
+                        {
+                            SDL_Surface *next =
+                                matches->data[i].h.img.surface_src;
+                            struct nk_image img_b = {
+                                .handle = {.id = (i32)texture_ids[i]},
+                                .w = next->w,
+                                .h = next->h,
+                                .region = {0, 0, next->w, next->h}};
+                            nk_image(ctx, img_b);
+                        }
+                        nk_layout_row_end(ctx);
+                    }
+
+                    // File paths
                     {
                         nk_layout_row_begin(ctx, NK_DYNAMIC, 0, 2);
                         nk_layout_row_push(ctx, 0.5f);
-                        nk_label(ctx, f_hash->file_name,
+                        nk_label(ctx, matches->data[img_current].file_name,
                                  NK_TEXT_ALIGN_CENTERED);
                         nk_label(ctx, matches->data[i].file_name,
                                  NK_TEXT_ALIGN_CENTERED);
