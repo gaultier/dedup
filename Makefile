@@ -6,7 +6,7 @@ CFLAGS_DEBUG = -fsanitize=address
 LDFLAGS = -flto
 LDLIBS = -lSDL2 -lSDL2_image -lpthread -lglew
 
-.PHONY: clean all
+.PHONY: clean all win64
 
 C_FILES= main.c
 H_FILES= $(wildcard *.h)
@@ -21,6 +21,9 @@ test: test.c dedup_debug
 	$(CC) -std=c99 -g $(CFLAGS_DEBUG) test.c vendor/munit.c -o $@
 
 all: dedup_release dedup_debug test
+
+win64:
+	x86_64-w64-mingw32-gcc main.c $(CFLAGS)
 
 clean:
 	rm -f *.o dedup_debug dedup_release
