@@ -273,11 +273,11 @@ static const char* path_home() {
 
 static bool path_trash(char* path, usize* len, usize capacity) {
     const char* const trash = ".Trash";  // FIXME
-    const usize trash_len = sizeof(trash) - 1;
+    const usize trash_len = strlen(trash);
     const char* const home = path_home();
     const usize home_len = strlen(home);
 
-    const usize final_len = home_len + trash_len + 1 + 1;
+    const usize final_len = home_len + trash_len + 1;
     if (final_len > capacity) return false;
 
     pg_assert_int(snprintf(path, capacity, "%s/%s", home, trash), ==,
@@ -293,7 +293,10 @@ static int file_move_to_trash(const char* path) {
     usize path_final_len = 0;
     char* path_final = pg_malloc(path_final_capacity);
 
-    path_trash(path_final, &path_final_len, path_final_capacity);
+    if (!path_trash(path_final, &path_final_len,
+                    path_final_capacity)) {  // TODO
+        pg_assert_int(0, !=, 0);
+    }
 
     {
         const usize needed_len = strlen(path) + path_final_len + 1 + 1;

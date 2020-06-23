@@ -138,7 +138,7 @@ static MunitResult test_file_move_to_trash(const MunitParameter params[],
 
     munit_assert_memory_equal(23, file_name, "test_file_move_to_trash");
 
-    file_move_to_trash(path);
+    munit_assert_int(file_move_to_trash(path), ==, 0);
 
     FILE* file = fopen(path, "r");
     const int err = errno;
