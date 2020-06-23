@@ -201,16 +201,12 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                     {
                         nk_layout_row_begin(ctx, NK_DYNAMIC, 0, 2);
                         nk_layout_row_push(ctx, 0.5f);
-                        if (nk_button_symbol_label(ctx, NK_SYMBOL_MINUS,
-                                                   "Delete",
-                                                   NK_TEXT_CENTERED)) {
+                        if (nk_button_label(ctx, "Delete")) {
                             file_hash *f_hash_1 = &matches->data[img_current];
                             ui_on_click_delete(matches, (usize)img_current,
                                                f_hash_1->file_name);
                         }
-                        if (nk_button_symbol_label(ctx, NK_SYMBOL_MINUS,
-                                                   "Delete",
-                                                   NK_TEXT_CENTERED)) {
+                        if (nk_button_label(ctx, "Delete")) {
                             file_hash *f_hash_2 =
                                 &matches->data[img_current + 1];
                             ui_on_click_delete(matches, (usize)img_current,
