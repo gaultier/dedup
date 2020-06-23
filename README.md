@@ -7,7 +7,7 @@ it reads its contents, and computes the average image hash. Otherwise it compute
 It then logs which files have the same hash.
 An optional visualization is also available.
 
-[screenshot](screenshot.png)
+[screenshot](https://github.com/gaultier/dedup/blob/master/screenshot.png)
 
 ## Quick start
 
