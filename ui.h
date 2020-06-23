@@ -221,7 +221,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                     }
                     if (matches->len == 0) goto end;
 
-                    i32 i = (img_current + 1);
+                    i32 img_current_next = (img_current + 1);
                     // Images
                     {
                         nk_layout_row_begin(ctx, NK_DYNAMIC,
@@ -241,10 +241,11 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
 
                         nk_layout_row_push(ctx, 0.5f);
                         {
-                            SDL_Surface *next =
-                                matches->data[i].h.img.surface_src;
+                            SDL_Surface *next = matches->data[img_current_next]
+                                                    .h.img.surface_src;
                             struct nk_image img_b = {
-                                .handle = {.id = (i32)texture_ids[i]},
+                                .handle = {.id = (i32)
+                                               texture_ids[img_current_next]},
                                 .w = next->w,
                                 .h = next->h,
                                 .region = {0, 0, next->w, next->h}};
@@ -259,7 +260,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                         nk_layout_row_push(ctx, 0.5f);
                         nk_label(ctx, matches->data[img_current].file_name,
                                  NK_TEXT_ALIGN_CENTERED);
-                        nk_label(ctx, matches->data[i].file_name,
+                        nk_label(ctx, matches->data[img_current_next].file_name,
                                  NK_TEXT_ALIGN_CENTERED);
                         nk_layout_row_end(ctx);
                     }
