@@ -6,3 +6,4 @@ test
 *.exe
 *.zip
 dedup-win64
+dedup-macos

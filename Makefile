@@ -14,7 +14,7 @@ ifeq ($(UNAME_S),Darwin)
     LDLIBS += -framework OpenGL
 endif
 
-.PHONY: clean all
+.PHONY: clean all win64 macos
 
 C_FILES= main.c
 H_FILES= $(wildcard *.h)
@@ -38,7 +38,15 @@ win64: dedup_release.exe
 	mkdir dedup-win64
 	cp dedup_release.exe dedup-win64/dedup.exe
 	cp libs-w64/*.dll dedup-win64
-	zip -r dedup.zip dedup-win64
+	zip -r dedup-win64.zip dedup-win64
+
+macos: dedup_release
+	rm -rf dedup-macos
+	mkdir dedup-macos
+	cp dedup_release dedup-macos/dedup
+	cp /usr/local/lib/libSDL2.dylib /usr/local/lib/libSDL2_image.dylib /usr/local/lib/libGLEW.dylib dedup-macos
+	zip -r dedup-macos.zip dedup-macos
+
 
 clean:
-	rm -rf *.o dedup_debug dedup_release dedup-win64 dedup.zip
+	rm -rf *.o dedup_debug dedup_release dedup-macos dedup-win64 *.zip
