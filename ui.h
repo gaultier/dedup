@@ -1,7 +1,5 @@
 #include <SDL2/SDL.h>
 
-#include "utils.h"
-
 #pragma once
 #define GL_SILENCE_DEPRECATION 1
 #ifdef __APPLE__
@@ -168,7 +166,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                      nk_rect(0, 0, window_width, window_height),
                      NK_WINDOW_BORDER)) {
             nk_layout_row_begin(ctx, NK_DYNAMIC, window_height - 30, 2);
-            nk_layout_row_push(ctx, 0.2f);
+            nk_layout_row_push(ctx, 0.25f);
             if (nk_group_begin(ctx, "Preview", 0)) {
                 nk_layout_row_dynamic(ctx, 0, 1);
 
@@ -179,7 +177,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                     nk_layout_row_dynamic(ctx, 50, 1);
 
                     struct nk_image img = {
-                        .handle = (void *)(texture_ids[i]),
+                        .handle = {.id = (i32)texture_ids[i]},
                         .w = surface_1->w,
                         .h = surface_1->h,
                         .region = {0, 0, surface_1->w, surface_1->h}};
@@ -200,7 +198,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
             }
             nk_group_end(ctx);
 
-            nk_layout_row_push(ctx, 0.80f);
+            nk_layout_row_push(ctx, 0.75f);
 
             if (nk_group_begin(ctx, "Visualization", 0)) {
                 if (matches->len > 0) {
@@ -232,7 +230,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                     nk_layout_row_push(ctx, 0.5f);
 
                     struct nk_image img_a = {
-                        .handle = (void *)texture_ids[img_current],
+                        .handle = {.id = (i32)texture_ids[img_current]},
                         .w = surface_current->w,
                         .h = surface_current->h,
                         .region = {0, 0, surface_current->w,
@@ -244,7 +242,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                     {
                         SDL_Surface *next = matches->data[i].h.img.surface_src;
                         struct nk_image img_b = {
-                            .handle = (void *)texture_ids[i],
+                            .handle = {.id = (i32)texture_ids[i]},
                             .w = next->w,
                             .h = next->h,
                             .region = {0, 0, next->w, next->h}};
