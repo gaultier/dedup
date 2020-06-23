@@ -59,16 +59,35 @@ static void ui_set_style(struct nk_context *ctx) {
     nk_style_from_table(ctx, table);
 }
 
-static void ui_texture_load(SDL_Surface *surface, GLuint *texture_id) {
+static bool ui_texture_load(SDL_Surface *surface, GLuint *texture_id,
+                            const char *path) {
     glGenTextures(1, texture_id);
     glBindTexture(GL_TEXTURE_2D, *texture_id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+
     // FIXME: format
-    pg_assert_int(surface->format->BytesPerPixel, ==, 3);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, GL_RGB,
+
+    GLenum gl_format = 0;
+    if (surface->format->BytesPerPixel == 3)
+        gl_format = GL_RGB;
+    else if (surface->format->BytesPerPixel == 4)
+        gl_format = GL_RGBA;
+    else {  // TODO: add more formats
+        LOG_ERR(
+            "I do not know how to map the format %d to OpenGL (from file "
+            "`%s`)\n",
+            surface->format->BytesPerPixel, path);
+
+        glDeleteTextures(1, texture_id);
+        return false;
+    }
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, gl_format,
                  GL_UNSIGNED_BYTE, surface->pixels);
+
+    return true;
 }
 
 static void *ui_init(SDL_Window **window) {
@@ -138,8 +157,24 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
     pg_assert_uint64(matches->len, >=, 2);
 
     GLuint *texture_ids = pg_malloc(sizeof(GLuint) * matches->len);
-    for (usize i = 0; i < matches->len; i++)
-        ui_texture_load(matches->data[i].h.img.surface_src, &texture_ids[i]);
+    {
+        usize i = 0;
+
+        while (i < matches->len) {
+            if (!ui_texture_load(matches->data[i].h.img.surface_src,
+                                 &texture_ids[i], matches->data[i].file_name) ||
+                !ui_texture_load(matches->data[i + 1].h.img.surface_src,
+                                 &texture_ids[i + 1],
+                                 matches->data[i].file_name)) {
+                LOG("Could not generate OpenGL texture for `%s` and `%s`, "
+                    "skipping\n",
+                    matches->data[i].file_name, matches->data[i + 1].file_name);
+                ui_delete_match(matches, i);
+            } else {
+                i += 2;
+            }
+        }
+    }
 
     i32 *img_selected = pg_malloc(sizeof(i32) * matches->len);
     memset(img_selected, 0, sizeof(i32) * matches->len);
