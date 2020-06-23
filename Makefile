@@ -25,5 +25,12 @@ all: dedup_release dedup_debug test
 dedup_release.exe: $(C_FILES) $(H_FILES)
 	$(CC) main.c $(CFLAGS) $(CFLAGS_RELEASE) $(LDFLAGS) -lSDL2 -lSDL2_image -lglew32 -lopengl32 -o $@
 
+win64: dedup_release.exe
+	rm -rf dedup-win64
+	mkdir dedup-win64
+	cp dedup_release.exe dedup-win64/dedup.exe
+	cp libs-w64/*.dll dedup-win64
+	zip -r dedup.zip dedup-win64
+
 clean:
-	rm -f *.o dedup_debug dedup_release
+	rm -rf *.o dedup_debug dedup_release dedup-win64 dedup.zip
