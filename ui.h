@@ -84,8 +84,8 @@ static bool ui_texture_load(SDL_Surface *surface, GLuint *texture_id,
         return false;
     }
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, gl_format,
-                 GL_UNSIGNED_BYTE, surface->pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0,
+                 gl_format, GL_UNSIGNED_BYTE, surface->pixels);
 
     return true;
 }
