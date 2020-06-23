@@ -11,19 +11,19 @@ An optional visualization is also available.
 
 ```sh
 # On macOS:
-$ brew install sdl2 sdl2_image sdl2_ttf
+$ brew install sdl2 sdl2_image
 
 # On Debian (development libraries):
-$ apt install -y libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
+$ apt install -y libsdl2-dev libsdl2-image-dev
 
 # On Debian (runtime libraries):
-$ apt install -y libsdl2-2.0.0 libsdl2-image-2.0.0 libsdl2-ttf-2.0-0
+$ apt install -y libsdl2-2.0.0 libsdl2-image-2.0.0
 
 # Compile:
 $ make all -j4
 
-# But actually `make` is not even needed, we can alternatively just do:
-$ cc main.c -std=c99 -lSDL2 -lSDL2_image -lSDL2_ttf -o dedup_release
+# But actually `make` is not even needed, we can alternatively just do (on Linux, adapt the `-gl` part for other platforms):
+$ cc main.c -std=c99 -lSDL2 -lSDL2_image -lgl -o dedup_release
 
 # See help
 $ ./dedup_release --help
@@ -75,7 +75,7 @@ A few limits are defined in `config.h`. Once they have been edited, recompile an
 
 Prerequisites:
 - Mingw installed
-- Development libraries installed for SDL, SDL_image, SDL_ttf, e.g in `/tmp/x86_64-w64-mingw32/lib/`
+- Development libraries installed for SDL, SDL_image, e.g in `/tmp/x86_64-w64-mingw32/lib/`
 
 ```sh
 $ make -j4 -B dedup_release CC=x86_64-w64-mingw32-gcc LDFLAGS="-L /tmp/x86_64-w64-mingw32/lib/"
@@ -86,7 +86,6 @@ dedup_release.exe: PE32+ executable (console) x86-64, for MS Windows
 References:
 - https://www.libsdl.org/release/SDL2-2.0.12-win32-x64.zip
 - https://www.libsdl.org/projects/SDL_image/release/SDL2_image-devel-2.0.5-mingw.tar.gz
-- https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-devel-2.0.15-mingw.tar.gz
 
 
 ## LICENSE

@@ -1,10 +1,19 @@
 .POSIX:
 
 CFLAGS = -Wall -Wextra -Wpedantic -Wno-padded -g -std=c99 -isystem /usr/local/include
-CFLAGS_RELEASE = -O2 -ffast-math
+CFLAGS_RELEASE = -O2 -ffast-math -march=native
 CFLAGS_DEBUG = -fsanitize=address
 LDFLAGS = -flto
-LDLIBS = -lSDL2 -lSDL2_image -lpthread -framework OpenGL
+LDLIBS = -lSDL2 -lSDL2_image -lpthread 
+
+# OpenGL
+UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+        LDLIBS += -lgl
+    endif
+    ifeq ($(UNAME_S),Darwin)
+        LDLIBS += -framework OpenGL
+    endif
 
 .PHONY: clean all
 
