@@ -1,6 +1,6 @@
 FROM ubuntu:18.04 as builder
 
-RUN apt update -y && apt install -y clang libsdl2-dev libsdl2-image-dev make
+RUN apt update -y && apt install -y clang libsdl2-dev libsdl2-image-dev make mesa-common-dev
 
 WORKDIR /dedup
 COPY . .

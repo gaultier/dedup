@@ -9,7 +9,7 @@ LDLIBS = -lSDL2 -lSDL2_image -lpthread
 # OpenGL
 UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Linux)
-        LDLIBS += -lgl
+        LDLIBS += -lX11 -lGL #-lGLU ?
     endif
     ifeq ($(UNAME_S),Darwin)
         LDLIBS += -framework OpenGL
