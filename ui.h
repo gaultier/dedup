@@ -2,11 +2,7 @@
 
 #pragma once
 #define GL_SILENCE_DEPRECATION 1
-#ifdef __APPLE__
-#include <OpenGL/gl3.h>
-#else
-#include <GL/gl.h>
-#endif
+#include <GL/glew.h>
 
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_STANDARD_IO
@@ -110,6 +106,9 @@ static void *ui_init(SDL_Window **window) {
     SDL_GLContext *context = SDL_GL_CreateContext(*window);
     if (!context)
         DIE(EINVAL, "Could not initialize OpenGL: %s\n", SDL_GetError());
+
+    glewExperimental = 1;
+    if (glewInit() != GLEW_OK) DIE(EINVAL, "Failed to setup GLEW%s\n", "");
 
     printf("GL version=%s\n", glGetString(GL_VERSION));
     printf("GL shading language version=%s\n",
