@@ -75,10 +75,11 @@ A few limits are defined in `config.h`. Once they have been edited, recompile an
 
 Prerequisites:
 - Mingw installed
-- Development libraries installed for SDL, SDL_image, e.g in `/tmp/x86_64-w64-mingw32/lib/`
+- Development libraries installed for SDL, SDL_image, e.g in `~/Downloads`:
 
 ```sh
-$ make -j4 -B dedup_release CC=x86_64-w64-mingw32-gcc LDFLAGS="-L /tmp/x86_64-w64-mingw32/lib/"
+$ make dedup_release.exe -B LDFLAGS="-L ~/Downloads/SDL2-2.0.12/x86_64-w64-mingw32/lib/ -L ~/Downloads/glew-2.1.0/lib/Release/x64/ -L ~/Downloads/SDL2_image-2.0.5/x86_64-w64-mingw32/lib/" CC=x86_64-w64-mingw32-gcc
+
 $ file dedup_release.exe
 dedup_release.exe: PE32+ executable (console) x86-64, for MS Windows
 ```
