@@ -7,23 +7,17 @@ it reads its contents, and computes the average image hash. Otherwise it compute
 It then logs which files have the same hash.
 An optional visualization is also available.
 
+(screenshot.png)
+
 ## Quick start
 
 ```sh
 # On macOS:
-$ brew install sdl2 sdl2_image
-
-# On Debian (development libraries):
-$ apt install -y libsdl2-dev libsdl2-image-dev
-
-# On Debian (runtime libraries):
-$ apt install -y libsdl2-2.0.0 libsdl2-image-2.0.0
+$ brew install sdl2 sdl2_image glew
+# On Linux, see Dockerfile(s)
 
 # Compile:
 $ make all -j4
-
-# But actually `make` is not even needed, we can alternatively just do (on Linux, adapt the `-gl` part for other platforms):
-$ cc main.c -std=c99 -lSDL2 -lSDL2_image -lgl -o dedup_release
 
 # See help
 $ ./dedup_release --help
@@ -47,14 +41,13 @@ TGA, BMP, PNM, XPM, XCF, PCX, GIF, JPG, TIF, LBM, PNG.
 
 ## Roadmap
 
-- [ ] Add windows support (mingw?):
+- [x] Add windows support (mingw?):
 - [ ] Add dhash (gradient hash)
 - [ ] Speed-up resize
 - [ ] Add glob option
 - [ ] CSV/JSON export option
 
-
-## Docker
+## Docker (WIP)
 
 ```sh
 # Ubuntu:
@@ -82,6 +75,8 @@ $ make dedup_release.exe -B LDFLAGS="-L ~/Downloads/SDL2-2.0.12/x86_64-w64-mingw
 
 $ file dedup_release.exe
 dedup_release.exe: PE32+ executable (console) x86-64, for MS Windows
+
+$ make win64
 ```
 
 References:

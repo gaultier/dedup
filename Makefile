@@ -6,6 +6,14 @@ CFLAGS_DEBUG = -fsanitize=address
 LDFLAGS = -flto
 LDLIBS = -lSDL2 -lSDL2_image -lpthread -lglew
 
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    LDLIBS += -lGL
+endif
+ifeq ($(UNAME_S),Darwin)
+    LDLIBS += -framework OpenGL
+endif
+
 .PHONY: clean all
 
 C_FILES= main.c
