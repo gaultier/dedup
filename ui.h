@@ -188,7 +188,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
     i32 img_current = 0;
     img_selected[img_current] = 1;
 
-    bool is_popup_active = false;
+    bool is_popup_active = (matches->len == 0);
     usize user_path_capacity = 20000;
     char *user_path = pg_malloc(user_path_capacity);
     user_path[0] = 0;
@@ -236,6 +236,9 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                         nk_button_label(ctx, "Scan!")) {
                         nk_popup_close(ctx);
                         is_popup_active = false;
+
+                        // TODO: scan
+                        memset(user_path, 0, user_path_capacity);
                     }
 
                     nk_popup_end(ctx);
@@ -243,8 +246,6 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
 
                 if (nk_button_label(ctx, "Pick a directory to scan")) {
                     is_popup_active = true;
-                    // TODO: scan
-                    // TODO: reset user_path
                 }
 
                 for (usize i = 0; i < matches->len; i += 2) {

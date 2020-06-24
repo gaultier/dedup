@@ -13,14 +13,6 @@ static options opts;
 #include "ui.h"
 #include "utils.h"
 
-void image_next(usize matches_count, usize* i) {
-    *i = *i == (matches_count - 1) ? 0 : *i + 1;
-}
-
-void image_previous(usize matches_count, usize* i) {
-    *i = *i == 0 ? (matches_count - 1) : *i - 1;
-}
-
 int main(int argc, char* argv[]) {
     (void)argc;
 
@@ -84,7 +76,7 @@ int main(int argc, char* argv[]) {
     printf("Bytes scanned: ");
     print_humanize_usize(file_hashes.bytes_read, "b");
 
-    if (matches.len == 0 || opts.windowless) return 0;
+    if (opts.windowless) return 0;
 
     SDL_Window* window;
     void* ctx = ui_init(&window);
