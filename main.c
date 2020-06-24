@@ -31,8 +31,7 @@ int main(int argc, char* argv[]) {
         .data = pg_malloc(MAX_FILES * sizeof(file_hash)), .pool = &pool};
 
     file_hashes_buffer matches = {
-        .data = pg_malloc(file_hashes.len * (file_hashes.len - 1) *
-                          sizeof(file_hash))};
+        .data = pg_malloc((usize)MAX_FILES * sizeof(file_hash))};
 
     files_scan(&file_hashes, &matches, &opts);
 
