@@ -299,8 +299,8 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                 printf("after: y_offset=%d\n", y_offset);
                 nk_group_set_scroll(ctx, "Preview", x_offset, y_offset);
                 y_scroll_times = 0;
+                nk_group_end(ctx);
             }
-            nk_group_end(ctx);
 
             nk_layout_row_push(ctx, 0.75f);
 
@@ -370,6 +370,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                         nk_layout_row_end(ctx);
                     }
                 }
+                nk_group_end(ctx);
             }
         }
     end:
