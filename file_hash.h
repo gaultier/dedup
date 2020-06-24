@@ -4,6 +4,7 @@
 
 #include "files.h"
 #include "image.h"
+#include "options.h"
 #include "thread_pool.h"
 #include "utils.h"
 
@@ -105,4 +106,46 @@ static void file_names_collect(const char* path, usize size, void* arg) {
         buffer->pool,
         (thread_pool_work_item){.arg = buffer->data[buffer->len - 1].file_name,
                                 .fn = file_hash_compute});
+}
+
+void files_scan(file_hashes_buffer* file_hashes, file_hashes_buffer* matches,
+                options* opts) {
+    thread_pool_start(file_hashes->pool);
+
+    dir_walk(opts->dir, file_names_collect, file_hashes);
+
+    thread_pool_finish(file_hashes->pool);
+
+    for (usize i = 0; i < file_hashes->len; i++) {
+        const file_hash* const f_hash_i = &file_hashes->data[i];
+        for (usize j = 0; j < i; j++) {
+            const file_hash* const f_hash_j = &file_hashes->data[j];
+
+            if (f_hash_i->method == METHOD_NON_CRYPT_HASH &&
+                f_hash_i->method == f_hash_j->method &&
+                f_hash_i->h.non_crypt_hash == f_hash_j->h.non_crypt_hash) {
+                printf("%s\n%s\nidentical non cryptographic hashes: %x\n\n",
+                       f_hash_i->file_name, f_hash_j->file_name,
+                       f_hash_i->h.non_crypt_hash);
+            } else if (f_hash_i->method == METHOD_AHASH &&
+                       f_hash_i->method == f_hash_j->method) {
+                const u32 dist = hamming_distance(f_hash_i->h.img.ahash,
+                                                  f_hash_j->h.img.ahash);
+                if (dist <= opts->distance) {
+                    printf(
+                        "%s\n%s\nsimilar ahashes: %llx %llx distance: %u\n\n",
+                        f_hash_i->file_name, f_hash_j->file_name,
+                        f_hash_i->h.img.ahash, f_hash_j->h.img.ahash, dist);
+
+                    pg_assert_uint64(
+                        matches->len, <,
+                        file_hashes->len * (file_hashes->len - 1) - 2);
+                    memcpy(&matches->data[matches->len++], f_hash_i,
+                           sizeof(file_hash));
+                    memcpy(&matches->data[matches->len++], f_hash_j,
+                           sizeof(file_hash));
+                }
+            }
+        }
+    }
 }
