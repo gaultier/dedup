@@ -1,4 +1,6 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_events.h>
+#include <SDL2/SDL_keycode.h>
 
 #pragma once
 #define GL_SILENCE_DEPRECATION 1
@@ -184,7 +186,9 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
     i32 *img_selected = pg_malloc(sizeof(i32) * matches->len);
     memset(img_selected, 0, sizeof(i32) * matches->len);
     i32 img_current = 0;
-    bool is_popup_active = true;
+    img_selected[img_current] = 1;
+
+    bool is_popup_active = false;
     usize user_path_capacity = 20000;
     char *user_path = pg_malloc(user_path_capacity);
     user_path[0] = 0;
@@ -199,7 +203,23 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
         nk_input_begin(ctx);
         SDL_WaitEvent(&event);
 
-        if (event.type == SDL_QUIT) return;
+        if (event.type == SDL_QUIT)
+            return;
+        else if (event.type == SDL_KEYDOWN &&
+                 event.key.keysym.sym == SDLK_DOWN) {
+            i32 img_current_old = img_current;
+            img_current =
+                CLAMP(img_current, img_current + 2, (i32)(matches->len - 2));
+            img_selected[img_current_old] = 0;
+            img_selected[img_current] = 1;
+        } else if (event.type == SDL_KEYDOWN &&
+                   event.key.keysym.sym == SDLK_UP) {
+            i32 img_current_old = img_current;
+            img_current = CLAMP(0, img_current - 2, img_current);
+            img_selected[img_current_old] = 0;
+            img_selected[img_current] = 1;
+        }
+
         nk_sdl_handle_event(&event);
         nk_input_end(ctx);
 
