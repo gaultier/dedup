@@ -155,6 +155,9 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
     struct nk_context *ctx = nuklear_ctx;
     pg_assert_uint64(matches->len, >=, 2);
 
+    //
+    // OpenGL textures
+    //
     GLuint *texture_ids = pg_malloc(sizeof(GLuint) * matches->len);
     {
         usize i = 0;
@@ -175,13 +178,22 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
         }
     }
 
+    //
+    // State
+    //
     i32 *img_selected = pg_malloc(sizeof(i32) * matches->len);
     memset(img_selected, 0, sizeof(i32) * matches->len);
     i32 img_current = 0;
+    bool is_popup_active = true;
+    usize user_path_capacity = 20000;
+    char *user_path = pg_malloc(user_path_capacity);
+    user_path[0] = 0;
 
+    //
+    // Main loop
+    //
     for (;;) {
         i32 window_width, window_height;
-        SDL_GetWindowSize(window, &window_width, &window_height);
 
         SDL_Event event;
         nk_input_begin(ctx);
@@ -191,6 +203,8 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
         nk_sdl_handle_event(&event);
         nk_input_end(ctx);
 
+        SDL_GetWindowSize(window, &window_width, &window_height);
+
         if (nk_begin(ctx, "Image Deduper",
                      nk_rect(0, 0, window_width, window_height),
                      NK_WINDOW_BORDER)) {
@@ -198,6 +212,34 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
             nk_layout_row_push(ctx, 0.25f);
             if (nk_group_begin(ctx, "Preview", 0)) {
                 nk_layout_row_dynamic(ctx, 0, 1);
+                if (is_popup_active) {
+                    struct nk_rect popup_rect = {.x = (window_width - 400) / 2,
+                                                 .y = (window_height - 110) / 3,
+                                                 .w = 400,
+                                                 .h = 110};
+
+                    nk_popup_begin(ctx, NK_POPUP_DYNAMIC, "Path",
+                                   NK_WINDOW_NO_SCROLLBAR | NK_WINDOW_BORDER,
+                                   popup_rect);
+                    nk_layout_row_dynamic(ctx, 0, 1);
+                    nk_label(ctx, "Directory to scan:", NK_TEXT_LEFT);
+                    nk_edit_string_zero_terminated(
+                        ctx, NK_EDIT_FIELD | NK_EDIT_CLIPBOARD, user_path,
+                        user_path_capacity, nk_filter_default);
+
+                    if (strlen(user_path) > 0 &&
+                        nk_button_label(ctx, "Scan!")) {
+                        nk_popup_close(ctx);
+                        is_popup_active = false;
+                    }
+
+                    nk_popup_end(ctx);
+                }
+
+                if (nk_button_label(ctx, "Pick a directory to scan")) {
+                    is_popup_active = true;
+                    // TODO: scan
+                }
 
                 for (usize i = 0; i < matches->len; i += 2) {
                     file_hash *f_hash_1 = &matches->data[i];
