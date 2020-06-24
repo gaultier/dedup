@@ -9,7 +9,7 @@
 
 typedef struct {
     bool verbose;
-    const char* dir;
+    char* dir;
     bool windowless;
     usize size;
     u8 distance;

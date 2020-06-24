@@ -45,5 +45,5 @@ int main(int argc, char* argv[]) {
     SDL_Window* window;
     void* ctx = ui_init(&window);
 
-    ui_run(window, ctx, &matches);
+    ui_run(window, ctx, &file_hashes, &matches, &opts);
 }

@@ -2,6 +2,8 @@
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_keycode.h>
 
+#include "options.h"
+
 #pragma once
 #define GL_SILENCE_DEPRECATION 1
 #include <GL/glew.h>
@@ -151,7 +153,8 @@ static void ui_on_click_delete(file_hashes_buffer *matches, usize i,
 }
 
 static void ui_run(SDL_Window *window, void *nuklear_ctx,
-                   file_hashes_buffer *matches) {
+                   file_hashes_buffer *file_hashes, file_hashes_buffer *matches,
+                   options *opts) {
     static char text_buffer[MAX_FILE_NAME_LEN * 2 + 10];
 
     struct nk_context *ctx = nuklear_ctx;
@@ -237,7 +240,9 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                         nk_popup_close(ctx);
                         is_popup_active = false;
 
-                        // TODO: scan
+                        opts->dir = user_path;
+                        files_scan(file_hashes, matches, opts);
+                        // TODO: regen OpenGL textures
                         memset(user_path, 0, user_path_capacity);
                     }
 
