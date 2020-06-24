@@ -198,32 +198,12 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
     //
     for (;;) {
         i32 window_width, window_height;
-        isize y_scroll_times = 0;
 
         SDL_Event event;
         nk_input_begin(ctx);
         SDL_WaitEvent(&event);
 
-        if (event.type == SDL_QUIT)
-            return;
-        else if (event.type == SDL_KEYDOWN &&
-                 event.key.keysym.sym == SDLK_DOWN) {
-            i32 img_current_old = img_current;
-            img_current =
-                CLAMP(img_current, img_current + 2, (i32)(matches->len - 2));
-            img_selected[img_current_old] = 0;
-            img_selected[img_current] = 1;
-
-            y_scroll_times--;
-        } else if (event.type == SDL_KEYDOWN &&
-                   event.key.keysym.sym == SDLK_UP) {
-            i32 img_current_old = img_current;
-            img_current = CLAMP(0, img_current - 2, img_current);
-            img_selected[img_current_old] = 0;
-            img_selected[img_current] = 1;
-
-            y_scroll_times++;
-        }
+        if (event.type == SDL_QUIT) return;
 
         nk_sdl_handle_event(&event);
         nk_input_end(ctx);
@@ -292,13 +272,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                         img_selected[i] = 1;
                     }
                 }
-                u32 x_offset, y_offset;
-                nk_group_get_scroll(ctx, "Preview", &x_offset, &y_offset);
-                printf("before: y_offset=%d\n", y_offset);
-                y_offset += y_scroll_times;
-                printf("after: y_offset=%d\n", y_offset);
-                nk_group_set_scroll(ctx, "Preview", x_offset, y_offset);
-                y_scroll_times = 0;
+
                 nk_group_end(ctx);
             }
 
