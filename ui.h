@@ -239,6 +239,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                 if (nk_button_label(ctx, "Pick a directory to scan")) {
                     is_popup_active = true;
                     // TODO: scan
+                    // TODO: reset user_path
                 }
 
                 for (usize i = 0; i < matches->len; i += 2) {
