@@ -152,6 +152,26 @@ static void ui_on_click_delete(file_hashes_buffer *matches, usize i,
     ui_delete_match(matches, i);
 }
 
+static void ui_textures_load(GLuint *texture_ids, usize *len,
+                             file_hashes_buffer *matches) {
+    while (*len < matches->len) {
+        if (!ui_texture_load(matches->data[*len].h.img.surface_src,
+                             &texture_ids[*len],
+                             matches->data[*len].file_name) ||
+            !ui_texture_load(matches->data[*len + 1].h.img.surface_src,
+                             &texture_ids[*len + 1],
+                             matches->data[*len].file_name)) {
+            LOG("Could not generate OpenGL texture for `%s` and `%s`, "
+                "skipping\n",
+                matches->data[*len].file_name,
+                matches->data[*len + 1].file_name);
+            ui_delete_match(matches, *len);
+        } else {
+            *len += 2;
+        }
+    }
+}
+
 static void ui_run(SDL_Window *window, void *nuklear_ctx,
                    file_hashes_buffer *file_hashes, file_hashes_buffer *matches,
                    options *opts) {
@@ -160,32 +180,12 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
     struct nk_context *ctx = nuklear_ctx;
     pg_assert_uint64(matches->len, >=, 2);
 
-    //
     // OpenGL textures
-    //
     GLuint *texture_ids = pg_malloc(sizeof(GLuint) * matches->len);
-    {
-        usize i = 0;
+    usize texture_ids_len = 0;
+    ui_textures_load(texture_ids, &texture_ids_len, matches);
 
-        while (i < matches->len) {
-            if (!ui_texture_load(matches->data[i].h.img.surface_src,
-                                 &texture_ids[i], matches->data[i].file_name) ||
-                !ui_texture_load(matches->data[i + 1].h.img.surface_src,
-                                 &texture_ids[i + 1],
-                                 matches->data[i].file_name)) {
-                LOG("Could not generate OpenGL texture for `%s` and `%s`, "
-                    "skipping\n",
-                    matches->data[i].file_name, matches->data[i + 1].file_name);
-                ui_delete_match(matches, i);
-            } else {
-                i += 2;
-            }
-        }
-    }
-
-    //
     // State
-    //
     i32 *img_selected = pg_malloc(sizeof(i32) * matches->len);
     memset(img_selected, 0, sizeof(i32) * matches->len);
     i32 img_current = 0;
@@ -196,9 +196,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
     char *user_path = pg_malloc(user_path_capacity);
     user_path[0] = 0;
 
-    //
     // Main loop
-    //
     for (;;) {
         i32 window_width, window_height;
 
