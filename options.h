@@ -97,7 +97,7 @@ static void options_parse(char* argv[], options* opts) {
     if ((arg = optparse_arg(&options)))
         opts->dir = arg;
     else
-        opts->dir = ".";  // FIXME: Windows
+        opts->dir = ".";
 
     // Show help and exit if requested
     if (help) {
