@@ -26,6 +26,29 @@
 
 #include "file_hash.h"
 
+struct ui_state {
+    char text_buffer[MAX_FILE_NAME_LEN * 2 + 10];
+    i32 *img_selected;
+    i32 img_current;
+
+    bool is_popup_active;
+    usize user_path_capacity;
+    char *user_path;
+};
+
+static void ui_state_init(struct ui_state *state, usize matches_len) {
+    state->img_selected = pg_malloc(sizeof(i32) * matches_len);
+    memset(state->img_selected, 0, sizeof(i32) * matches_len);
+
+    state->img_current = 0;
+    state->img_selected[state->img_current] = 1;
+    state->is_popup_active = (matches_len == 0);
+
+    state->user_path_capacity = 20000;
+    state->user_path = pg_malloc(state->user_path_capacity);
+    state->user_path[0] = 0;
+}
+
 static void ui_set_style(struct nk_context *ctx) {
     struct nk_color table[NK_COLOR_COUNT];
     table[NK_COLOR_TEXT] = nk_rgba(190, 190, 190, 255);
@@ -175,8 +198,6 @@ static void ui_textures_load(GLuint *texture_ids, usize *len,
 static void ui_run(SDL_Window *window, void *nuklear_ctx,
                    file_hashes_buffer *file_hashes, file_hashes_buffer *matches,
                    options *opts) {
-    static char text_buffer[MAX_FILE_NAME_LEN * 2 + 10];
-
     struct nk_context *ctx = nuklear_ctx;
     pg_assert_uint64(matches->len, >=, 2);
 
@@ -185,16 +206,8 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
     usize texture_ids_len = 0;
     ui_textures_load(texture_ids, &texture_ids_len, matches);
 
-    // State
-    i32 *img_selected = pg_malloc(sizeof(i32) * matches->len);
-    memset(img_selected, 0, sizeof(i32) * matches->len);
-    i32 img_current = 0;
-    img_selected[img_current] = 1;
-
-    bool is_popup_active = (matches->len == 0);
-    usize user_path_capacity = 20000;
-    char *user_path = pg_malloc(user_path_capacity);
-    user_path[0] = 0;
+    struct ui_state state;
+    ui_state_init(&state, matches->len);
 
     // Main loop
     for (;;) {
@@ -218,7 +231,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
             nk_layout_row_push(ctx, 0.25f);
             if (nk_group_begin(ctx, "Preview", 0)) {
                 nk_layout_row_dynamic(ctx, 0, 1);
-                if (is_popup_active) {
+                if (state.is_popup_active) {
                     struct nk_rect popup_rect = {.x = (window_width - 400) / 2,
                                                  .y = (window_height - 110) / 3,
                                                  .w = 400,
@@ -230,25 +243,25 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                     nk_layout_row_dynamic(ctx, 0, 1);
                     nk_label(ctx, "Directory to scan:", NK_TEXT_LEFT);
                     nk_edit_string_zero_terminated(
-                        ctx, NK_EDIT_FIELD | NK_EDIT_CLIPBOARD, user_path,
-                        user_path_capacity, nk_filter_default);
+                        ctx, NK_EDIT_FIELD | NK_EDIT_CLIPBOARD, state.user_path,
+                        state.user_path_capacity, nk_filter_default);
 
-                    if (strlen(user_path) > 0 &&
+                    if (strlen(state.user_path) > 0 &&
                         nk_button_label(ctx, "Scan!")) {
                         nk_popup_close(ctx);
-                        is_popup_active = false;
+                        state.is_popup_active = false;
 
-                        opts->dir = user_path;
+                        opts->dir = state.user_path;
                         files_scan(file_hashes, matches, opts);
                         // TODO: regen OpenGL textures
-                        memset(user_path, 0, user_path_capacity);
+                        memset(state.user_path, 0, state.user_path_capacity);
                     }
 
                     nk_popup_end(ctx);
                 }
 
                 if (nk_button_label(ctx, "Pick a directory to scan")) {
-                    is_popup_active = true;
+                    state.is_popup_active = true;
                 }
 
                 for (usize i = 0; i < matches->len; i += 2) {
@@ -264,16 +277,17 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                         .region = {0, 0, surface_1->w, surface_1->h}};
 
                     file_hash *f_hash_2 = &matches->data[i + 1];
-                    snprintf(text_buffer, ARR_SIZE(text_buffer), "%s %s",
-                             path_file_name(f_hash_1->file_name),
+                    snprintf(state.text_buffer, ARR_SIZE(state.text_buffer),
+                             "%s %s", path_file_name(f_hash_1->file_name),
                              path_file_name(f_hash_2->file_name));
 
-                    if (nk_selectable_image_label(ctx, img, text_buffer,
+                    if (nk_selectable_image_label(ctx, img, state.text_buffer,
                                                   NK_TEXT_CENTERED,
-                                                  &img_selected[i])) {
-                        memset(img_selected, 0, sizeof(i32) * matches->len);
-                        img_current = i;
-                        img_selected[i] = 1;
+                                                  &(state.img_selected[i]))) {
+                        memset(state.img_selected, 0,
+                               sizeof(i32) * matches->len);
+                        state.img_current = i;
+                        state.img_selected[i] = 1;
                     }
                 }
 
@@ -289,14 +303,17 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                         nk_layout_row_begin(ctx, NK_DYNAMIC, 0, 2);
                         nk_layout_row_push(ctx, 0.5f);
                         if (nk_button_label(ctx, "Delete")) {
-                            file_hash *f_hash_1 = &matches->data[img_current];
-                            ui_on_click_delete(matches, (usize)img_current,
+                            file_hash *f_hash_1 =
+                                &matches->data[state.img_current];
+                            ui_on_click_delete(matches,
+                                               (usize)state.img_current,
                                                f_hash_1->file_name);
                         }
                         if (nk_button_label(ctx, "Delete")) {
                             file_hash *f_hash_2 =
-                                &matches->data[img_current + 1];
-                            ui_on_click_delete(matches, (usize)img_current,
+                                &matches->data[state.img_current + 1];
+                            ui_on_click_delete(matches,
+                                               (usize)state.img_current,
                                                f_hash_2->file_name);
                         }
 
@@ -304,7 +321,7 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                     }
                     if (matches->len == 0) goto end;
 
-                    i32 img_current_next = (img_current + 1);
+                    i32 img_current_next = (state.img_current + 1);
                     // Images
                     {
                         nk_layout_row_begin(ctx, NK_DYNAMIC,
@@ -312,10 +329,11 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                         nk_layout_row_push(ctx, 0.5f);
 
                         SDL_Surface *surface_current =
-                            matches->data[img_current].h.img.surface_src;
+                            matches->data[state.img_current].h.img.surface_src;
 
                         struct nk_image img_a = {
-                            .handle = {.id = (i32)texture_ids[img_current]},
+                            .handle = {.id =
+                                           (i32)texture_ids[state.img_current]},
                             .w = surface_current->w,
                             .h = surface_current->h,
                             .region = {0, 0, surface_current->w,
@@ -341,7 +359,8 @@ static void ui_run(SDL_Window *window, void *nuklear_ctx,
                     {
                         nk_layout_row_begin(ctx, NK_DYNAMIC, 0, 2);
                         nk_layout_row_push(ctx, 0.5f);
-                        nk_label(ctx, matches->data[img_current].file_name,
+                        nk_label(ctx,
+                                 matches->data[state.img_current].file_name,
                                  NK_TEXT_ALIGN_CENTERED);
                         nk_label(ctx, matches->data[img_current_next].file_name,
                                  NK_TEXT_ALIGN_CENTERED);
